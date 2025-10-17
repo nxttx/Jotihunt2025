@@ -171,7 +171,7 @@ function createLocationMarker(lat, lon, icon, naam, locatie) {
 const currentLocationMarker = L.icon({
   iconUrl: "/images/currentlocation.svg",
   iconSize: [32, 32],
-  iconAnchor: [16, 32],
+  iconAnchor: [16, 16],
   popupAnchor: [0, -32],
 });
 
