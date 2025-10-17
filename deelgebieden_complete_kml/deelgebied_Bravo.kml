@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.1">
+  <Document>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark9"><name>Wardens of Weurt</name><description>&lt;![CDATA[Kerkstraat 50, 6551ZZ Weurt]]&gt;</description><Point><coordinates>5.81725,51.85915</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark23"><name>Scouting Elst</name><description>&lt;![CDATA[De Pas 4, 6662BK Elst]]&gt;</description><Point><coordinates>5.84314,51.90607</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark39"><name>Scouting Amalgama</name><description>&lt;![CDATA[Weteringweg 50, 6546JZ Nijmegen]]&gt;</description><Point><coordinates>5.78557,51.83913</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark46"><name>Scouting Karel de Stoute</name><description>&lt;![CDATA[Weezenhof 9311, 6536AE Nijmegen]]&gt;</description><Point><coordinates>5.81791,51.80183</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark54"><name>Schutgraaf</name><description>&lt;![CDATA[Hannesstraatje 4, 6843nv Arnhem]]&gt;</description><Point><coordinates>5.86969,51.96625</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark59"><name>Arcastor</name><description>&lt;![CDATA[Staddijk 105, 6537 TW Nijmegen]]&gt;</description><Point><coordinates>5.78972,51.80905</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark74"><name>Scouting Valburg</name><description>&lt;![CDATA[Reethsestraat 25, 6675CE Valburg]]&gt;</description><Point><coordinates>5.79448,51.90762</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark76"><name>janjan en de explos</name><description>&lt;![CDATA[Slotemaker de Bruïneweg 161Nvt., 6532 AC Nijmegen]]&gt;</description><Point><coordinates>5.84195,51.82279</coordinates></Point></Placemark>
+  </Document>
+</kml>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.1">
+  <Document>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark2"><name>Scouting Titus Brandsma</name><description>&lt;![CDATA[Doornenburg 530, 7423BS Deventer]]&gt;</description><Point><coordinates>6.21258,52.25060</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark4"><name>Graaf Otto Groep Lochem</name><description>&lt;![CDATA[Gageldijk 2A, 7241RJ Lochem]]&gt;</description><Point><coordinates>6.39390,52.14485</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark5"><name>Rhedense Pioniers</name><description>&lt;![CDATA[Brinkweg 1A, 6991 JN Rheden]]&gt;</description><Point><coordinates>6.02039,52.00047</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark15"><name>ijsselgroep</name><description>&lt;![CDATA[Kwekerijweg 5, 7213 AX Gorssel]]&gt;</description><Point><coordinates>6.21506,52.19984</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark43"><name>Scouting Hamaland</name><description>&lt;![CDATA[Keppelseweg 249, 7008BB Doetinchem]]&gt;</description><Point><coordinates>6.26736,51.97636</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark53"><name>Isala Groep Doesburg</name><description>&lt;![CDATA[Panovenweg 1, 6984AK Doesburg]]&gt;</description><Point><coordinates>6.14650,52.01736</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark64"><name>Scouting Dieren</name><description>&lt;![CDATA[Kolonieweg 9, 6952GZ Dieren]]&gt;</description><Point><coordinates>6.07719,52.05407</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark67"><name>Scouting Pegasus</name><description>&lt;![CDATA[De Beemd 1, 6883DA Velp]]&gt;</description><Point><coordinates>5.99243,51.98718</coordinates></Point></Placemark>
+  </Document>
+</kml>

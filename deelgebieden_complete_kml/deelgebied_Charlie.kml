@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.1">
+  <Document>
+    <Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark6">
+      <name>Scouting Bemmel</name>
+      <description>&lt;![CDATA[Sportlaan 1F, 6681CD Bemmel]]&gt;</description>
+      <Point>
+        <coordinates>5.90548,51.88717</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark10">
+      <name>Scouting Keizer Karel NIJMEGEN</name>
+      <description>&lt;![CDATA[Sophiaweg 450, 6523NJ Nijmegen]]&gt;</description>
+      <Point>
+        <coordinates>5.89007,51.82515</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark18">
+      <name>Velpsche Woudloopers</name>
+      <description>&lt;![CDATA[Beekhuizenseweg 73A, 6881 AE Velp]]&gt;</description>
+      <Point>
+        <coordinates>5.97850,52.00908</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark19">
+      <name>Scouting Dannenburcht</name>
+      <description>&lt;![CDATA[Kloosterlaan 1A, 6851CA Huissen]]&gt;</description>
+      <Point>
+        <coordinates>5.94221,51.93565</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark26">
+      <name>St. Christoforus - Lichtdraagsters</name>
+      <description>&lt;![CDATA[Monnikensteeg 4, 6823 AB Arnhem]]&gt;</description>
+      <Point>
+        <coordinates>5.93160,51.99623</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark29">
+      <name>Scouting Paul Kruger</name>
+      <description>&lt;![CDATA[Sophiaweg 448 448, 6523NJ Nijmegen]]&gt;</description>
+      <Point>
+        <coordinates>5.89090,51.82578</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark44">
+      <name>Scoutinggroep de Markesteen</name>
+      <description>&lt;![CDATA[Bovenallee 5, 6881 AJ Velp]]&gt;</description>
+      <Point>
+        <coordinates>5.98431,52.01597</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark73">
+      <name>Scouting Tapawingo Eerbeek</name>
+      <description>&lt;![CDATA[Veldkantweg 8C, 6961HJ Eerbeek]]&gt;</description>
+      <Point>
+        <coordinates>6.04526,52.10333</coordinates>
+      </Point>
+    </Placemark>
+  </Document>
+</kml>

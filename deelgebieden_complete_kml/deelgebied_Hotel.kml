@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.1">
+  <Document>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark8"><name>Scouting St. Franciscus</name><description>&lt;![CDATA[Sint Jorispad 39, 6603AM Wijchen]]&gt;</description><Point><coordinates>5.74512,51.80570</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark11"><name>Scouting Graaf van Gelre</name><description>&lt;![CDATA[Burgemeester Roozeveld v/d Venlaan 13A, 4191PL Geldermalsen]]&gt;</description><Point><coordinates>5.27115,51.87765</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark13"><name>KKG</name><description>&lt;![CDATA[Driesweg 21, 4021 HK Maurik]]&gt;</description><Point><coordinates>5.43773,51.95640</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark21"><name>Scouting Maas en Waal</name><description>&lt;![CDATA[Koningstraat 114, 6654AH Afferden]]&gt;</description><Point><coordinates>5.61599,51.88209</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark25"><name>Scouting De Paulus</name><description>&lt;![CDATA[de paulus 1, 6621 cb Dreumel]]&gt;</description><Point><coordinates>5.43236,51.84866</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark42"><name>scouting woezik</name><description>&lt;![CDATA[oud woeziksestraat 3, 6604kd WIJCHEN]]&gt;</description><Point><coordinates>5.71743,51.82522</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark49"><name>Karmijngroep Winssen</name><description>&lt;![CDATA[Kennedysingel 8a, 6645 AW Winssen]]&gt;</description><Point><coordinates>5.70039,51.88145</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark50"><name>Sint Stanislaus</name><description>&lt;![CDATA[Steenovenslaan 20, 4101AM Culemborg]]&gt;</description><Point><coordinates>5.21671,51.95983</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark61"><name>Scouting Phoenix Tiel</name><description>&lt;![CDATA[De Hennepe 199, 4003AD Tiel]]&gt;</description><Point><coordinates>5.42589,51.89961</coordinates></Point></Placemark>
+  </Document>
+</kml>

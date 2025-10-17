@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.1">
+  <Document>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark14"><name>De Geuzen Arnhem</name><description>&lt;![CDATA[Diependalseweg 3, 6813GE Arnhem]]&gt;</description><Point><coordinates>5.87625,51.98778</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark20"><name>Scouting Bennekom</name><description>&lt;![CDATA[Selterskampweg 68, 6721AV Bennekom]]&gt;</description><Point><coordinates>5.68697,52.01004</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark40"><name>Scouting OPV-Schoonoord</name><description>&lt;![CDATA[van Borsselenweg 43, 6862BH Oosterbeek]]&gt;</description><Point><coordinates>5.82137,51.98134</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark41"><name>Scouting Zetten</name><description>&lt;![CDATA[H. Piersonstraat 21, 6671 CK Zetten]]&gt;</description><Point><coordinates>5.70935,51.93257</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark52"><name>Scouting Langenberggroep Ede</name><description>&lt;![CDATA[Buurtmeesterweg 27, 6711HL Ede]]&gt;</description><Point><coordinates>5.69081,52.04033</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark58"><name>Scouting Jan Hilgers</name><description>&lt;![CDATA[Dwarsweg 1, 6715 AT Ede]]&gt;</description><Point><coordinates>5.61967,52.04176</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark60"><name>KaLiG</name><description>&lt;![CDATA[Parkweg 9, 6815 DJ Arnhem]]&gt;</description><Point><coordinates>5.90046,51.99591</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark62"><name>Paddegat</name><description>&lt;![CDATA[Reumersweg 27, 3912AH Rhenen]]&gt;</description><Point><coordinates>5.56088,51.96857</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark69"><name>Aerendheem</name><description>&lt;![CDATA[Lindestraat 26, 6823JT Arnhem]]&gt;</description><Point><coordinates>5.94783,52.00429</coordinates></Point></Placemark>
+  </Document>
+</kml>

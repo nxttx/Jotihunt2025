@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Jotihunt 2025 — Front End</title>
+
+    <!-- Normalize.css - make browsers render elements more consistently -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css"
+        integrity="sha512-NhSC1YmyruXifcj/KFRWoC561YpHpc5Jtzgvbuzx5VozKpWvQ+4nXhPdFgmx8xqexRcpAglTj9sIBWINXa8x5w=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+        rel="stylesheet">
+
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+
+        .huntable_card {
+            display: inline-block;
+            /* border: 1px solid black; */
+            border-radius: 8px;
+            padding: 2px 10px;
+            margin: 4px;
+            background-color: lightgray;
+            color: white;
+        }
+
+        .green {
+            background-color: #4cd137 !important;
+        }
+
+        .red {
+            background-color: #e84118 !important;
+        }
+
+        .orange {
+            background-color: #e1b12c !important;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <!-- Top-right name input -->
+    <div id="name-panel" style="position:fixed; top:12px; right:12px; z-index:9999;">
+        <label for="name-input" style="display:block; font-size:12px; color:#111827; margin-bottom:6px;">Your
+            name</label>
+        <input id="name-input" type="text" placeholder="Enter your name"
+            style="padding:8px 10px; border-radius:8px; border:1px solid rgba(0,0,0,0.12); font-size:14px;" />
+    </div>
+
+    <div id="map" style="width: 100vw; height: 100vh;"></div>
+
+    <!-- todo RB: Hier ben je gebleven -->
+    <div class="areas" style="position: fixed; z-index: 30000000; left: 0px; bottom: 0px;">
+        <span class="huntable_card">...</span>
+        <span class="huntable_card">...</span>
+        <span class="huntable_card">...</span>
+        <span class="huntable_card">...</span>
+        <span class="huntable_card">...</span>
+        <span class="huntable_card">...</span>
+        <span class="huntable_card">...</span>
+        <span class="huntable_card">...</span>
+
+    </div>
+
+
+    <script src="/js/name.js?v=1.0"></script>
+    <script src="/js/map.js?v=1.1"></script>
+    <script src="/js/areas.js?v=1.0"></script>
+</body>
+
+</html>

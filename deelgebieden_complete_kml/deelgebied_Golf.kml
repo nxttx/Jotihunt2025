@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.1">
+  <Document>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark17"><name>Scouting Scherpenzeel e.o.</name><description>&lt;![CDATA[De Breelaan 5, 3925HX Scherpenzeel]]&gt;</description><Point><coordinates>5.48715,52.08601</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark22"><name>VMG Harderwijk</name><description>&lt;![CDATA[Strokelweg 6, 3847 LR Harderwijk]]&gt;</description><Point><coordinates>5.63558,52.32488</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark27"><name>Alexandergroep Ermelo</name><description>&lt;![CDATA[Watervalweg 175, 3853PS Ermelo]]&gt;</description><Point><coordinates>5.59472,52.28675</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark28"><name>Scouting Kon-Tiki Putten</name><description>&lt;![CDATA[Garderenseweg 144B, 3881NC Putten]]&gt;</description><Point><coordinates>5.63984,52.24451</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark30"><name>Irmin-Taweb</name><description>&lt;![CDATA[kalkoenweg 23, 3851 sb ermelo]]&gt;</description><Point><coordinates>5.62017,52.31548</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark34"><name>Tarcisius Ede</name><description>&lt;![CDATA[Bosrand 17A, 6718zn Ede]]&gt;</description><Point><coordinates>5.67837,52.05130</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark48"><name>Ragay Redoz/Duiven</name><description>&lt;![CDATA[Strokelweg 4, 3847LR Harderwijk]]&gt;</description><Point><coordinates>5.63382,52.32627</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark65"><name>Scouting Jan Wandelaar</name><description>&lt;![CDATA[Dasselaarweg 49, 3896 LT Zeewolde]]&gt;</description><Point><coordinates>5.52886,52.30679</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark66"><name>HessenHobbits</name><description>&lt;![CDATA[Hessenweg 77, 6741 JP Lunteren]]&gt;</description><Point><coordinates>5.65094,52.09166</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark72"><name>Scouting Nijkerk</name><description>&lt;![CDATA[Bosrand 17A, 6718 ZN Ede]]&gt;</description><Point><coordinates>5.67843,52.05138</coordinates></Point></Placemark>
+  </Document>
+</kml>

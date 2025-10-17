@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.1">
+  <Document>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark3"><name>Sw3lbp</name><description>&lt;![CDATA[Jachtlaan 4, 7313CP Apeldoorn]]&gt;</description><Point><coordinates>5.94267,52.22592</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark33"><name>Scouting de Trijsberg</name><description>&lt;![CDATA[Oranje Nassaulaan 14, 8051 PB Hattem]]&gt;</description><Point><coordinates>6.04766,52.45701</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark38"><name>Scoutinggroep JJB</name><description>&lt;![CDATA[Berghuizerweg 155, 7312SN Apeldoorn]]&gt;</description><Point><coordinates>5.92284,52.19646</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark51"><name>Ugchelse woudlopers GR2</name><description>&lt;![CDATA[Hulkestein 45, 7339 AW Ugchelen]]&gt;</description><Point><coordinates>5.94210,52.18152</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark56"><name>Scouting Nunspeet</name><description>&lt;![CDATA[Zandeboslaan 80, 8072 PP Nunspeet]]&gt;</description><Point><coordinates>5.80674,52.37619</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark63"><name>Gustaaf Adolf Groep</name><description>&lt;![CDATA[Oostloo 8 8, 8084PK 't Harde]]&gt;</description><Point><coordinates>5.86434,52.40853</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark70"><name>N.S. Rambonnet</name><description>&lt;![CDATA[J.P. Broekhovenstraat 40, 8081 HC Elburg]]&gt;</description><Point><coordinates>5.82116,52.45982</coordinates></Point></Placemark>
+  </Document>
+</kml>

@@ -1,0 +1,586 @@
+[
+  {
+    "deelgebied": "Delta",
+    "naam": "ADT Arnhem",
+    "groepen": "scouting andrÃ© de thaye",
+    "locatie": "Voetiuslaan 41  6828 TD ARNHEM",
+    "lat": "51.98139",
+    "lon": "5.93389"
+  },
+  {
+    "deelgebied": "Alpha",
+    "naam": "Aerendheem",
+    "groepen": "Scouting Aerendheem",
+    "locatie": "Lindestraat 26  6823JT Arnhem",
+    "lat": "52.00429",
+    "lon": "5.94783"
+  },
+  {
+    "deelgebied": "Golf",
+    "naam": "Alexandergroep Ermelo",
+    "groepen": "Alexandergroep",
+    "locatie": "Watervalweg 175  3853PS Ermelo",
+    "lat": "52.28675",
+    "lon": "5.59472"
+  },
+  {
+    "deelgebied": "Bravo",
+    "naam": "Arcastor",
+    "groepen": "Scoutinggroep de Bevers  Scouting Malden",
+    "locatie": "Staddijk 105  6537 TW Nijmegen",
+    "lat": "51.80905",
+    "lon": "5.78972"
+  },
+  {
+    "deelgebied": "Alpha",
+    "naam": "De Geuzen Arnhem",
+    "groepen": "De Geuzen Arnhem",
+    "locatie": "Diependalseweg 3  6813GE Arnhem",
+    "lat": "51.98778",
+    "lon": "5.87625"
+  },
+  {
+    "deelgebied": "Charlie",
+    "naam": "Frodo's Flamegrilled Rings (Hertog Van Gelre Apeldoorn)",
+    "groepen": "Hertog van Gelre",
+    "locatie": "Polderweg 4  7327 GX Apeldoorn",
+    "lat": "52.18424",
+    "lon": "6.00511"
+  },
+  {
+    "deelgebied": "Delta",
+    "naam": "Graaf Jan uit Ulft",
+    "groepen": "Graaf Jan uit Ulft",
+    "locatie": "Bongersstraat 263  7071 DZ Ulft",
+    "lat": "51.88203",
+    "lon": "6.38702"
+  },
+  {
+    "deelgebied": "Echo",
+    "naam": "Graaf Otto Groep Lochem",
+    "groepen": "Scouting Graaf Otto Groep Lochem",
+    "locatie": "Gageldijk 2A  7241RJ Lochem",
+    "lat": "52.14485",
+    "lon": "6.39390"
+  },
+  {
+    "deelgebied": "Foxtrot",
+    "naam": "Gustaaf Adolf Groep",
+    "groepen": "Gustaaf Adolf Groep",
+    "locatie": "Oostloo 8 8  8084PK 't Harde",
+    "lat": "52.40853",
+    "lon": "5.86434"
+  },
+  {
+    "deelgebied": "Echo",
+    "naam": "HÃ©lÃ¨ne H. Wilkensgroep (Scouting Voorst)",
+    "groepen": "HÃ©lÃ¨ne H. Wilkensgroep (Scouting Voorst)",
+    "locatie": "De Halmen 1a  7383 BG Voorst",
+    "lat": "52.18218",
+    "lon": "6.13891"
+  },
+  {
+    "deelgebied": "Golf",
+    "naam": "HessenHobbits",
+    "groepen": "Scouting Lunteren",
+    "locatie": "Hessenweg 77  6741 JP Lunteren",
+    "lat": "52.09166",
+    "lon": "5.65094"
+  },
+  {
+    "deelgebied": "Echo",
+    "naam": "ijsselgroep",
+    "groepen": "scouting ijsselgroep",
+    "locatie": "Kwekerijweg 5  7213 AX Gorssel",
+    "lat": "52.19984",
+    "lon": "6.21506"
+  },
+  {
+    "deelgebied": "Golf",
+    "naam": "Irmin-Taweb",
+    "groepen": "Irmin-Taweb",
+    "locatie": "kalkoenweg 23  3851 sb ermelo",
+    "lat": "52.31548",
+    "lon": "5.62017"
+  },
+  {
+    "deelgebied": "Echo",
+    "naam": "Isala Groep Doesburg",
+    "groepen": "Isala Doesburg",
+    "locatie": "Panovenweg 1  6984AK Doesburg",
+    "lat": "52.01736",
+    "lon": "6.14650"
+  },
+  {
+    "deelgebied": "Bravo",
+    "naam": "janjan en de explos",
+    "groepen": "Jan van hoof",
+    "locatie": "Slotemaker de BruÃ¯neweg 161Nvt.  6532 AC Nijmegen",
+    "lat": "51.82279",
+    "lon": "5.84195"
+  },
+  {
+    "deelgebied": "Alpha",
+    "naam": "KaLiG",
+    "groepen": "SBV/Kastanjegroep  Scouting Lincolngroep Arnhem",
+    "locatie": "Parkweg 9  6815 DJ Arnhem",
+    "lat": "51.99591",
+    "lon": "5.90046"
+  },
+  {
+    "deelgebied": "Hotel",
+    "naam": "Karmijngroep Winssen",
+    "groepen": "Karmijngroep Winssen",
+    "locatie": "Kennedysingel 8a  6645 AW Winssen",
+    "lat": "51.88145",
+    "lon": "5.70039"
+  },
+  {
+    "deelgebied": "Hotel",
+    "naam": "KKG",
+    "groepen": "Klaas Kittengroep",
+    "locatie": "Driesweg 21  4021 HK Maurik",
+    "lat": "51.95640",
+    "lon": "5.43773"
+  },
+  {
+    "deelgebied": "Foxtrot",
+    "naam": "N.S. Rambonnet",
+    "groepen": "N.S Rambonnet Elburg",
+    "locatie": "J.P. Broekhovenstraat 40  8081 HC Elburg",
+    "lat": "52.45982",
+    "lon": "5.82116"
+  },
+  {
+    "deelgebied": "Alpha",
+    "naam": "Paddegat",
+    "groepen": "Jonkheer schimmelpenninckgroep Rhenen",
+    "locatie": "Reumersweg 27  3912AH Rhenen",
+    "lat": "51.96857",
+    "lon": "5.56088"
+  },
+  {
+    "deelgebied": "Golf",
+    "naam": "Ragay Redoz/Duiven",
+    "groepen": "Ragay Redoz  Scouting duiven.",
+    "locatie": "Strokelweg 4  3847LR Harderwijk",
+    "lat": "52.32627",
+    "lon": "5.63382"
+  },
+  {
+    "deelgebied": "Echo",
+    "naam": "Rhedense Pioniers",
+    "groepen": "Rhedense Pioniers",
+    "locatie": "Brinkweg 1A  6991 JN Rheden",
+    "lat": "52.00047",
+    "lon": "6.02039"
+  },
+  {
+    "deelgebied": "Delta",
+    "naam": "Roothaangroep",
+    "groepen": "Roothaangroep",
+    "locatie": "Koekendaalseweg 11  7004 GH Doetinchem",
+    "lat": "51.94919",
+    "lon": "6.32090"
+  },
+  {
+    "deelgebied": "Bravo",
+    "naam": "Schutgraaf",
+    "groepen": "Schutgraaf",
+    "locatie": "Hannesstraatje 4  6843nv Arnhem",
+    "lat": "51.96625",
+    "lon": "5.86969"
+  },
+  {
+    "deelgebied": "Delta",
+    "naam": "SCOGA en Jonko",
+    "groepen": "SCOGA en Jonko",
+    "locatie": "Hamminkstraat 21  7011HC Gaanderen",
+    "lat": "51.93797",
+    "lon": "6.34722"
+  },
+  {
+    "deelgebied": "Bravo",
+    "naam": "Scouting Amalgama",
+    "groepen": "Scouting Amalgama",
+    "locatie": "Weteringweg 50  6546JZ Nijmegen",
+    "lat": "51.83913",
+    "lon": "5.78557"
+  },
+  {
+    "deelgebied": "Charlie",
+    "naam": "Scouting Bemmel",
+    "groepen": "Scouting Bemmel",
+    "locatie": "Sportlaan 1F  6681CD Bemmel",
+    "lat": "51.88717",
+    "lon": "5.90548"
+  },
+  {
+    "deelgebied": "Alpha",
+    "naam": "Scouting Bennekom",
+    "groepen": "Scouting Bennekom",
+    "locatie": "Selterskampweg 68  6721AV Bennekom",
+    "lat": "52.01004",
+    "lon": "5.68697"
+  },
+  {
+    "deelgebied": "Bravo",
+    "naam": "Scouting Beuningen '76",
+    "groepen": "Scouting Beuningen '76",
+    "locatie": "Reekstraat 13a  6551DR Weurt",
+    "lat": "51.85362",
+    "lon": "5.78234"
+  },
+  {
+    "deelgebied": "Charlie",
+    "naam": "Scouting Dannenburcht",
+    "groepen": "Scouting Dannenburcht",
+    "locatie": "Kloosterlaan 1A  6851CA Huissen",
+    "lat": "51.93565",
+    "lon": "5.94221"
+  },
+  {
+    "deelgebied": "Hotel",
+    "naam": "Scouting De Paulus",
+    "groepen": "Scouting De Paulus",
+    "locatie": "de paulus 1  6621 cb Dreumel",
+    "lat": "51.84866",
+    "lon": "5.43236"
+  },
+  {
+    "deelgebied": "Foxtrot",
+    "naam": "Scouting de Trijsberg",
+    "groepen": "Scouting de Trijsberg",
+    "locatie": "Oranje Nassaulaan 14  8051 PB Hattem",
+    "lat": "52.45701",
+    "lon": "6.04766"
+  },
+  {
+    "deelgebied": "Delta",
+    "naam": "Scouting Didam",
+    "groepen": "St. Wilibrordgroep",
+    "locatie": "Julianastraat 41  6942BB Didam",
+    "lat": "51.93856",
+    "lon": "6.13235"
+  },
+  {
+    "deelgebied": "Echo",
+    "naam": "Scouting Dieren",
+    "groepen": "Scouting Dieren",
+    "locatie": "Kolonieweg 9  6952GZ Dieren",
+    "lat": "52.05407",
+    "lon": "6.07719"
+  },
+  {
+    "deelgebied": "Bravo",
+    "naam": "Scouting Elst",
+    "groepen": "Scouting Elst",
+    "locatie": "De Pas 4  6662BK Elst",
+    "lat": "51.90607",
+    "lon": "5.84314"
+  },
+  {
+    "deelgebied": "Hotel",
+    "naam": "Scouting Graaf van Gelre",
+    "groepen": "Scouting Graaf van Gelre",
+    "locatie": "Burgemeester Roozeveld v/d Venlaan 13A  4191PL Geldermalsen",
+    "lat": "51.87765",
+    "lon": "5.27115"
+  },
+  {
+    "deelgebied": "Bravo",
+    "naam": "Scouting Grave & Boxmeer",
+    "groepen": "Scouting Boxmeer  Scouting Grave",
+    "locatie": "Overasseltseweg 4B  6582BL Heumen",
+    "lat": "51.76471",
+    "lon": "5.82873"
+  },
+  {
+    "deelgebied": "Delta",
+    "naam": "Scouting Groessen en Vrieden",
+    "groepen": "Scouting Groessen en Vrienden",
+    "locatie": "Sint Isidorusplein 8  6923 BD Groessen",
+    "lat": "51.93193",
+    "lon": "6.03235"
+  },
+  {
+    "deelgebied": "Echo",
+    "naam": "Scouting Hamaland",
+    "groepen": "Scouting Hamaland",
+    "locatie": "Keppelseweg 249  7008BB Doetinchem",
+    "lat": "51.97636",
+    "lon": "6.26736"
+  },
+  {
+    "deelgebied": "Alpha",
+    "naam": "Scouting Jan Hilgers",
+    "groepen": "Scouting Jan Hilgers",
+    "locatie": "Dwarsweg 1  6715 AT Ede",
+    "lat": "52.04176",
+    "lon": "5.61967"
+  },
+  {
+    "deelgebied": "Golf",
+    "naam": "Scouting Jan Wandelaar",
+    "groepen": "Scouting Jan Wandelaar",
+    "locatie": "Dasselaarweg 49  3896 LT Zeewolde",
+    "lat": "52.30679",
+    "lon": "5.52886"
+  },
+  {
+    "deelgebied": "Bravo",
+    "naam": "Scouting Karel de Stoute",
+    "groepen": "Scouting Karel de Stoute",
+    "locatie": "Weezenhof 9311  6536AE Nijmegen",
+    "lat": "51.80183",
+    "lon": "5.81791"
+  },
+  {
+    "deelgebied": "Charlie",
+    "naam": "Scouting Keizer Karel NIJMEGEN",
+    "groepen": "Scouting Keizer Karel NIJMEGEN",
+    "locatie": "Sophiaweg 450  6523NJ Nijmegen",
+    "lat": "51.82515",
+    "lon": "5.89007"
+  },
+  {
+    "deelgebied": "Golf",
+    "naam": "Scouting Kon-Tiki Putten",
+    "groepen": "Kon-Tiki",
+    "locatie": "Garderenseweg 144B  3881NC Putten",
+    "lat": "52.24451",
+    "lon": "5.63984"
+  },
+  {
+    "deelgebied": "Alpha",
+    "naam": "Scouting Langenberggroep Ede",
+    "groepen": "Scouting Langenberggroep Ede",
+    "locatie": "Buurtmeesterweg 27  6711HL Ede",
+    "lat": "52.04033",
+    "lon": "5.69081"
+  },
+  {
+    "deelgebied": "Hotel",
+    "naam": "Scouting Maas en Waal",
+    "groepen": "De Rietkampers  Scouting Don Bosco",
+    "locatie": "Koningstraat 114  6654AH Afferden",
+    "lat": "51.88209",
+    "lon": "5.61599"
+  },
+  {
+    "deelgebied": "Golf",
+    "naam": "Scouting Nijkerk",
+    "groepen": "Scouting Tarcisius Ede  Scouting Nijkerk",
+    "locatie": "Bosrand 17A  6718 ZN Ede",
+    "lat": "52.05138",
+    "lon": "5.67843"
+  },
+  {
+    "deelgebied": "Foxtrot",
+    "naam": "Scouting Nunspeet",
+    "groepen": "Scouting Nunspeet",
+    "locatie": "Zandeboslaan 80  8072 PP Nunspeet",
+    "lat": "52.37619",
+    "lon": "5.80674"
+  },
+  {
+    "deelgebied": "Alpha",
+    "naam": "Scouting OPV-Schoonoord",
+    "groepen": "Opv-Schoonoord",
+    "locatie": "van Borsselenweg 43  6862BH Oosterbeek",
+    "lat": "51.98134",
+    "lon": "5.82137"
+  },
+  {
+    "deelgebied": "Charlie",
+    "naam": "Scouting Paul Kruger",
+    "groepen": "Scouting Paul Kruger",
+    "locatie": "Sophiaweg 448 448  6523NJ Nijmegen",
+    "lat": "51.82578",
+    "lon": "5.89090"
+  },
+  {
+    "deelgebied": "Foxtrot",
+    "naam": "Scouting Paulus & Petrus Dondersgroep",
+    "groepen": "Scouting Paulus & Petrus Dondersgroep",
+    "locatie": "Egerlaan 7  7334 AD Apeldoorn",
+    "lat": "52.18495",
+    "lon": "5.96052"
+  },
+  {
+    "deelgebied": "Echo",
+    "naam": "Scouting Pegasus",
+    "groepen": "Scouting Pegasus",
+    "locatie": "De Beemd 1  6883DA Velp",
+    "lat": "51.98718",
+    "lon": "5.99243"
+  },
+  {
+    "deelgebied": "Hotel",
+    "naam": "Scouting Phoenix Tiel",
+    "groepen": "Scouting Phoenix Tiel",
+    "locatie": "De Hennepe 199  4003AD Tiel",
+    "lat": "51.89961",
+    "lon": "5.42589"
+  },
+  {
+    "deelgebied": "Delta",
+    "naam": "Scouting Saksenheerd",
+    "groepen": "Scouting Saksenheerd",
+    "locatie": "Terborgseweg 16b  7084AJ Breedenbroek",
+    "lat": "51.87432",
+    "lon": "6.46378"
+  },
+  {
+    "deelgebied": "Golf",
+    "naam": "Scouting Scherpenzeel e.o.",
+    "groepen": "Scouting Scherpenzeel e.o.",
+    "locatie": "De Breelaan 5  3925HX Scherpenzeel",
+    "lat": "52.08601",
+    "lon": "5.48715"
+  },
+  {
+    "deelgebied": "Hotel",
+    "naam": "Scouting St. Franciscus",
+    "groepen": "Scouting St. Franciscus",
+    "locatie": "Sint Jorispad 39  6603AM Wijchen",
+    "lat": "51.80570",
+    "lon": "5.74512"
+  },
+  {
+    "deelgebied": "Charlie",
+    "naam": "Scouting Tapawingo Eerbeek",
+    "groepen": "Scouting Tapawingo Eerbeek",
+    "locatie": "Veldkantweg 8C  6961HJ Eerbeek",
+    "lat": "52.10333",
+    "lon": "6.04526"
+  },
+  {
+    "deelgebied": "Echo",
+    "naam": "Scouting Titus Brandsma",
+    "groepen": "Scouting Titus Brandsma",
+    "locatie": "Doornenburg 530  7423BS Deventer",
+    "lat": "52.25060",
+    "lon": "6.21258"
+  },
+  {
+    "deelgebied": "Bravo",
+    "naam": "Scouting Valburg",
+    "groepen": "Scouting Valburg",
+    "locatie": "Reethsestraat 25  6675CE Valburg",
+    "lat": "51.90762",
+    "lon": "5.79448"
+  },
+  {
+    "deelgebied": "Hotel",
+    "naam": "scouting woezik",
+    "groepen": "scouting Woezik",
+    "locatie": "oud woeziksestraat 3  6604kd WIJCHEN",
+    "lat": "51.82522",
+    "lon": "5.71743"
+  },
+  {
+    "deelgebied": "Alpha",
+    "naam": "Scouting Zetten",
+    "groepen": "Scouting Zetten",
+    "locatie": "H. Piersonstraat 21  6671 CK Zetten",
+    "lat": "51.93257",
+    "lon": "5.70935"
+  },
+  {
+    "deelgebied": "Charlie",
+    "naam": "Scoutinggroep de Markesteen",
+    "groepen": "Scoutinggroep de Markesteen",
+    "locatie": "Bovenallee 5  6881 AJ Velp",
+    "lat": "52.01597",
+    "lon": "5.98431"
+  },
+  {
+    "deelgebied": "Foxtrot",
+    "naam": "Scoutinggroep JJB",
+    "groepen": "Scouting JJB",
+    "locatie": "Berghuizerweg 155  7312SN Apeldoorn",
+    "lat": "52.19646",
+    "lon": "5.92284"
+  },
+  {
+    "deelgebied": "Charlie",
+    "naam": "Scoutinggroep Lido '76",
+    "groepen": "Scoutinggroep Lido 76",
+    "locatie": "Veerpolderstraat 128A  6833BS Arnhem",
+    "lat": "51.96820",
+    "lon": "5.91741"
+  },
+  {
+    "deelgebied": "Hotel",
+    "naam": "Sint Stanislaus",
+    "groepen": "St. Stanislaus",
+    "locatie": "Steenovenslaan 20  4101AM Culemborg",
+    "lat": "51.95983",
+    "lon": "5.21671"
+  },
+  {
+    "deelgebied": "Charlie",
+    "naam": "St. Christoforus - Lichtdraagsters",
+    "groepen": "st. Christoforus - Lichtdraagsters",
+    "locatie": "Monnikensteeg 4  6823 AB Arnhem",
+    "lat": "51.99623",
+    "lon": "5.93160"
+  },
+  {
+    "deelgebied": "Delta",
+    "naam": "Subliem Hunting Team",
+    "groepen": "Subanhara Liemersgroep",
+    "locatie": "slenterweg 29  6905dp zevenaar",
+    "lat": "51.91565",
+    "lon": "6.06614"
+  },
+  {
+    "deelgebied": "Foxtrot",
+    "naam": "Sw3lbp",
+    "groepen": "Stadhouder Willem III/Lady Baden-Powell",
+    "locatie": "Jachtlaan 4  7313CP Apeldoorn",
+    "lat": "52.22592",
+    "lon": "5.94267"
+  },
+  {
+    "deelgebied": "Golf",
+    "naam": "Tarcisius Ede",
+    "groepen": "",
+    "locatie": "Bosrand 17A  6718zn Ede",
+    "lat": "52.05130",
+    "lon": "5.67837"
+  },
+  {
+    "deelgebied": "Foxtrot",
+    "naam": "Ugchelse woudlopers GR2",
+    "groepen": "Ugchelse woudlopers GR2",
+    "locatie": "Hulkestein 45  7339 AW Ugchelen",
+    "lat": "52.18152",
+    "lon": "5.94210"
+  },
+  {
+    "deelgebied": "Charlie",
+    "naam": "Velpsche Woudloopers",
+    "groepen": "Velpsche Woudloopers",
+    "locatie": "Beekhuizenseweg 73A  6881 AE Velp",
+    "lat": "52.00908",
+    "lon": "5.97850"
+  },
+  {
+    "deelgebied": "Golf",
+    "naam": "VMG Harderwijk",
+    "groepen": "Verbraak Margriet Groep",
+    "locatie": "Strokelweg 6  3847 LR Harderwijk",
+    "lat": "52.32488",
+    "lon": "5.63558"
+  },
+  {
+    "deelgebied": "Bravo",
+    "naam": "Wardens of Weurt",
+    "groepen": "Scouting Weurt",
+    "locatie": "Kerkstraat 50  6551ZZ Weurt",
+    "lat": "51.85915",
+    "lon": "5.81725"
+  }
+]

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.1">
+  <Document>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark12"><name>Scouting Didam</name><description>&lt;![CDATA[Julianastraat 41, 6942BB Didam]]&gt;</description><Point><coordinates>6.13235,51.93856</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark31"><name>Scouting Groessen en Vrieden</name><description>&lt;![CDATA[Sint Isidorusplein 8, 6923 BD Groessen]]&gt;</description><Point><coordinates>6.03235,51.93193</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark32"><name>Subliem Hunting Team</name><description>&lt;![CDATA[slenterweg 29, 6905dp zevenaar]]&gt;</description><Point><coordinates>6.06614,51.91565</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark35"><name>Scouting Saksenheerd</name><description>&lt;![CDATA[Terborgseweg 16b, 7084AJ Breedenbroek]]&gt;</description><Point><coordinates>6.46378,51.87432</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark37"><name>Roothaangroep</name><description>&lt;![CDATA[Koekendaalseweg 11, 7004 GH Doetinchem]]&gt;</description><Point><coordinates>6.32090,51.94919</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark45"><name>SCOGA en Jonko</name><description>&lt;![CDATA[Hamminkstraat 21, 7011HC Gaanderen]]&gt;</description><Point><coordinates>6.34722,51.93797</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark47"><name>ADT Arnhem</name><description>&lt;![CDATA[Voetiuslaan 41, 6828 TD ARNHEM]]&gt;</description><Point><coordinates>5.93389,51.98139</coordinates></Point></Placemark>
+<Placemark xmlns:ns0="http://earth.google.com/kml/2.1" id="placemark55"><name>Graaf Jan uit Ulft</name><description>&lt;![CDATA[Bongersstraat 263, 7071 DZ Ulft]]&gt;</description><Point><coordinates>6.38702,51.88203</coordinates></Point></Placemark>
+  </Document>
+</kml>

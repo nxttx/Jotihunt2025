@@ -1,0 +1,54 @@
+# invoke the dockerfile to build the image
+version: '3.8'
+
+services:
+  webapi:
+    build: webapi/
+    user: root
+    restart: always
+    networks:
+      - my-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/healthcheck || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # depends_on:
+    #   db-postgres:
+    #     condition: service_healthy
+
+  # db-postgres:
+  #   image: postgres:15.3
+  #   environment:
+  #   # set username and password
+  #     POSTGRES_USER: p0stgr3sql
+  #     POSTGRES_PASSWORD: Passw0rd
+  #   volumes:
+  #     - ./.db_data/db-postgres:/var/lib/postgresql/data
+  #     - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+  #   restart: always
+  #   networks:
+  #     - my-network
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready", "-U", "p0stgr3sql", "-d", "p0stgr3sql"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 20
+
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - my-network
+    # make sure we can alter the static files while the container is running
+    volumes:
+      - ./front-end:/usr/share/nginx/html
+    restart: always
+    depends_on:
+      - webapi
+
+networks:
+  my-network:
+    driver: bridge 
