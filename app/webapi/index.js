@@ -4,7 +4,6 @@ const http = require("http");
 const fs = require("fs");
 const { Server } = require("socket.io");
 
-// ⚠️ Belangrijk: import Config uit het subpad
 const { JsonDB } = require("node-json-db");
 const { Config } = require("node-json-db/dist/lib/JsonDBConfig");
 
@@ -25,6 +24,14 @@ try {
 } catch {
   visitedStore = {};
   db.push("/visited", visitedStore, true);
+}
+
+let vosStore = {};
+try {
+  vosStore = db.getData("/vos");
+} catch {
+  vosStore = {};
+  db.push("/vos", vosStore, true);
 }
 
 // ============== API Endpoints ==============
@@ -115,6 +122,66 @@ io.on("connection", (socket) => {
       id,
       visited: visitedStore[id].visited,
     });
+  });
+
+  // Vos updates
+  socket.emit("vos:snapshot", vosStore);
+
+  socket.on("vos:create", (payload) => {
+    const { id, lat, lng, area, startedAt, label } = payload || {};
+    if (
+      typeof lat !== "number" ||
+      typeof lng !== "number" ||
+      !area ||
+      !startedAt
+    )
+      return;
+
+    const newId = id;
+    const safeId = String(newId).replace(/\//g, "_");
+
+    const vos = { id: newId, lat, lng, area, startedAt, label: label || "" };
+    vosStore[newId] = vos;
+
+    try {
+      db.push(`/vos/${safeId}`, vos, true);
+    } catch (e) {
+      console.error("DB push vos error:", e);
+    }
+
+    socket.broadcast.emit("vos:upsert", vos);
+    socket.emit("vos:upsert", vos);
+  });
+
+  socket.on("vos:update", (payload) => {
+    const { id } = payload || {};
+    if (!id || !vosStore[id]) return;
+
+    const merged = { ...vosStore[id], ...payload };
+    vosStore[id] = merged;
+
+    try {
+      const safeId = String(id).replace(/\//g, "_");
+      db.push(`/vos/${safeId}`, merged, true);
+    } catch (e) {
+      console.error("DB push vos update error:", e);
+    }
+
+    socket.broadcast.emit("vos:upsert", merged);
+    socket.emit("vos:upsert", merged);
+  });
+
+  socket.on("vos:remove", ({ id }) => {
+    if (!id || !vosStore[id]) return;
+    delete vosStore[id];
+    try {
+      const safeId = String(id).replace(/\//g, "_");
+      db.delete(`/vos/${safeId}`);
+    } catch (e) {
+      console.error("DB remove vos error:", e);
+    }
+    socket.broadcast.emit("vos:remove", { id });
+    socket.emit("vos:remove", { id });
   });
 
   // Locatie updates

@@ -60,6 +60,21 @@
     socket.emit("visited:set", { id, visited });
   }
 
+  function createVos(vos) {
+    if (!socket.connected) return;
+    socket.emit("vos:create", vos);
+  }
+
+  function updateVos(vos) {
+    if (!socket.connected) return;
+    socket.emit("vos:update", vos);
+  }
+
+  function removeVos(id) {
+    if (!socket.connected) return;
+    socket.emit("vos:remove", { id });
+  }
+
   function leave() {
     try {
       socket.emit("peer:leave", { clientId: getClientId() });
@@ -78,6 +93,9 @@
     sendLocation,
     updateDraggable,
     setVisited,
+    createVos,
+    updateVos,
+    removeVos,
     leave,
     getClientId,
   };
