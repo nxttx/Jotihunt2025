@@ -4,6 +4,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 
 const PORT = process.env.PORT || 8080;
+var draggablemarkerLocation = { lat:51.988488, lng: 5.896824 }; // Standaard locatie
 
 const app = express();
 app.use(express.json());
@@ -11,6 +12,11 @@ app.use(express.json());
 // Healthcheck
 app.get("/healthcheck", (req, res) => {
   res.status(200).json({ status: "ok" });
+});
+
+app.get("/draggablemarker/location", (req, res) => {
+  // Voorbeeld endpoint voor draggable marker locatie ophalen
+  res.status(200).json(draggablemarkerLocation);
 });
 
 const server = http.createServer(app);

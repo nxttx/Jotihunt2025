@@ -1,6 +1,7 @@
 // create leaflet map
 const map = L.map("map").setView([51.988488, 5.896824], 8);
 var myLocationMarker;
+var draggableMarker;
 
 const peerMarkers = new Map();
 function upsertPeerMarker(id, name, latlng) {
@@ -22,6 +23,7 @@ function upsertPeerMarker(id, name, latlng) {
 initMap();
 initLocation();
 loadMarkers();
+loadDraggableMarker();
 
 function initMap() {
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -164,8 +166,26 @@ function onLocationError(e) {
   alert(e.message);
 }
 
+async function loadDraggableMarker() {
+  let request = await fetch("/api/draggablemarker/location");
+  let data = await request.json();
+  const lat = data.lat;
+  const lng = data.lng;
+
+  draggableMarker = createLocationMarker(lat, lng, pin, "Draggable Marker", "Draggable Marker Location");
+  draggableMarker.dragging.enable();
+
+
+  draggableMarker.on("dragend", function (e) {
+    const position = e.target.getLatLng();
+    console.log("New position:", position.lat, position.lng);
+    // Hier kun je een verzoek sturen naar de server om de nieuwe locatie op te slaan @Janne
+  });
+}
+
+
 function createLocationMarker(lat, lon, icon, naam, locatie) {
-  L.marker([lat, lon], { icon: icon })
+  return L.marker([lat, lon], { icon: icon })
     .addTo(map)
     .on("click", () => {
       L.popup()
@@ -181,6 +201,13 @@ const currentLocationMarker = L.icon({
   iconUrl: "/images/currentlocation.svg",
   iconSize: [32, 32],
   iconAnchor: [16, 16],
+  popupAnchor: [0, -32],
+});
+
+const pin = L.icon({
+  iconUrl: "/images/pin.png",
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
   popupAnchor: [0, -32],
 });
 
