@@ -38,6 +38,8 @@
     display: flex;
     gap: 6px;
     padding: 8px;
+    width: 100vw;
+    flex-wrap: wrap;
 }
 
 
