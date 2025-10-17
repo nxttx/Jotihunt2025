@@ -205,13 +205,26 @@ function setOrCreateDraggable(lat, lng) {
         SocketAPI.updateDraggable(p.lat, p.lng);
       }
     });
+
+    draggableMarker.on("click", function (e) {
+      const p = e.target.getLatLng();
+      L.popup()
+        .setLatLng(p)
+        .setContent(
+          `<b>Draggable Marker</b><br>` +
+            `<a href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}" target="_blank" rel="noopener">Google Maps</a>`
+        )
+        .openOn(map);
+    });
   } else {
     draggableMarker.setLatLng([lat, lng]);
   }
 }
 
 function createLocationMarker(lat, lon, icon, naam, locatie, area) {
-  if (area === "Undefined") area = "Marker";
+  if (area === "Undefined") {
+    area = "Marker";
+  }
 
   return L.marker([lat, lon], { icon: icon })
     .addTo(map)
