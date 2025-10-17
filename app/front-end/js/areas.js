@@ -38,6 +38,9 @@ async function retrieveAreas() {
             case "Hotel":
                 classname += " grey_border";
                 break;
+            case "Oscar":
+                classname += " white_border";
+                break;
         }
 
         document.querySelector('.areas').innerHTML += `<span class="${classname}">${area.name}</span>`;

@@ -59,80 +59,89 @@ function initLocation() {
 }
 
 async function loadMarkers() {
-  let request = await fetch("/assets/deelnemers.json");
+  let request = await fetch("https://jotihunt.nl/api/2.0/subscriptions");
   let data = await request.json();
-  data.forEach((location) => {
-    switch (location.deelgebied) {
+  data.data.forEach((location) => {
+    switch (location.area) {
       case "Alpha":
         createLocationMarker(
           location.lat,
-          location.lon,
+          location.long,
           MarkerAlpha,
-          location.naam,
-          location.locatie
+          location.name,
+          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`
         );
         break;
       case "Bravo":
         createLocationMarker(
           location.lat,
-          location.lon,
+          location.long,
           MarkerBravo,
-          location.naam,
-          location.locatie
+          location.name,
+          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`
         );
         break;
       case "Charlie":
         createLocationMarker(
           location.lat,
-          location.lon,
+          location.long,
           MarkerCharlie,
-          location.naam,
-          location.locatie
+          location.name,
+          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`
         );
         break;
       case "Delta":
         createLocationMarker(
           location.lat,
-          location.lon,
+          location.long,
           MarkerDelta,
-          location.naam,
-          location.locatie
+          location.name,
+          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`
         );
         break;
       case "Echo":
         createLocationMarker(
           location.lat,
-          location.lon,
+          location.long,
           MarkerEcho,
-          location.naam,
-          location.locatie
+          location.name,
+          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`
         );
         break;
       case "Foxtrot":
         createLocationMarker(
           location.lat,
-          location.lon,
+          location.long,
           MarkerFoxtrot,
-          location.naam,
-          location.locatie
+          location.name,
+          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`
         );
         break;
       case "Golf":
         createLocationMarker(
           location.lat,
-          location.lon,
+          location.long,
           MarkerGolf,
-          location.naam,
-          location.locatie
+          location.name,
+          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`
         );
         break;
       case "Hotel":
         createLocationMarker(
           location.lat,
-          location.lon,
+          location.long,
           MarkerHotel,
-          location.naam,
-          location.locatie
+          location.name,
+          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`
+        );
+        break;
+      case "Oscar":
+        createLocationMarker(
+          location.lat,
+          location.long,
+          MarkerOscar,
+          location.name,
+          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`
         );
         break;
     }
@@ -226,6 +235,13 @@ const MarkerGolf = L.icon({
 
 const MarkerHotel = L.icon({
   iconUrl: "/images/marker_grey.png",
+  iconSize: [22, 40],
+  iconAnchor: [11, 40],
+  popupAnchor: [0, -40],
+});
+
+const MarkerOscar = L.icon({
+  iconUrl: "/images/marker_white.png",
   iconSize: [22, 40],
   iconAnchor: [11, 40],
   popupAnchor: [0, -40],
