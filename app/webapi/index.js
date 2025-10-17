@@ -1,13 +1,33 @@
 // index.js
 const express = require("express");
 const http = require("http");
+const fs = require("fs");
 const { Server } = require("socket.io");
+
+// ⚠️ Belangrijk: import Config uit het subpad
+const { JsonDB } = require("node-json-db");
+const { Config } = require("node-json-db/dist/lib/JsonDBConfig");
 
 const PORT = process.env.PORT || 8080;
 var draggablemarkerLocation = { lat: 51.988488, lng: 5.896824 };
 
 const app = express();
 app.use(express.json());
+
+// ============== Database ==============
+
+fs.mkdirSync("data", { recursive: true });
+
+const db = new JsonDB(new Config("data/markers", true, true, "/"));
+
+try {
+  visitedStore = db.getData("/visited");
+} catch {
+  visitedStore = {};
+  db.push("/visited", visitedStore, true);
+}
+
+// ============== API Endpoints ==============
 
 // Healthcheck
 app.get("/healthcheck", (req, res) => {
@@ -18,6 +38,27 @@ app.get("/draggablemarker/location", (req, res) => {
   res.status(200).json(draggablemarkerLocation);
 });
 
+app.get("/visited", (req, res) => {
+  res.json(visitedStore);
+});
+
+app.post("/visited", (req, res) => {
+  const { id, visited } = req.body || {};
+  if (!id || typeof visited !== "boolean")
+    return res.status(400).json({ error: "id & visited required" });
+
+  visitedStore[id] = { visited, ts: Date.now() };
+  try {
+    const safeId = String(id).replace(/\//g, "_");
+    db.push(`/visited/${safeId}`, visitedStore[id], true);
+  } catch (e) {}
+
+  io.emit("visited:update", { id, visited: visitedStore[id].visited });
+  res.json({ ok: true });
+});
+
+// ============== HTTP + Socket.IO Server ==============
+
 const server = http.createServer(app);
 
 // Socket.IO server
@@ -27,6 +68,8 @@ const io = new Server(server, {
 });
 
 const peers = new Map();
+
+// ============== Socket.IO Handlers ==============
 
 io.on("connection", (socket) => {
   let clientId = null;
@@ -51,6 +94,26 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("peer:join", {
       clientId,
       name: name || "Anoniem",
+    });
+  });
+
+  // Database updates
+  socket.emit("visited:snapshot", visitedStore);
+
+  socket.on("visited:set", ({ id, visited }) => {
+    if (!id || typeof visited !== "boolean") return;
+
+    visitedStore[id] = { visited, ts: Date.now() };
+    try {
+      const safeId = String(id).replace(/\//g, "_");
+      db.push(`/visited/${safeId}`, visitedStore[id], true);
+    } catch (e) {
+      console.error("DB push error:", e);
+    }
+
+    socket.broadcast.emit("visited:update", {
+      id,
+      visited: visitedStore[id].visited,
     });
   });
 
@@ -89,6 +152,8 @@ io.on("connection", (socket) => {
     }
   });
 });
+
+// ============== Start Server ==============
 
 server.listen(PORT, () => {
   console.log(`Web API + Socket.IO listening on :${PORT}`);

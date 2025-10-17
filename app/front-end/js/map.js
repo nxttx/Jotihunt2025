@@ -20,6 +20,17 @@ function upsertPeerMarker(id, name, latlng) {
   }
 }
 
+const markerById = new Map();
+const visitedState = new Map();
+
+function markerId(lat, lon) {
+  return `${lat},${lon}`;
+}
+
+function applyVisitedStyle(marker, visited) {
+  marker.setOpacity(visited ? 0.5 : 1);
+}
+
 initMap();
 initLocation();
 loadMarkers();
@@ -222,20 +233,40 @@ function setOrCreateDraggable(lat, lng) {
 }
 
 function createLocationMarker(lat, lon, icon, naam, locatie, area) {
-  if (area === "Undefined") {
-    area = "Marker";
-  }
+  if (area === "Undefined") area = "Marker";
 
-  return L.marker([lat, lon], { icon: icon })
-    .addTo(map)
-    .on("click", () => {
-      L.popup()
-        .setLatLng([lat, lon])
-        .setContent(
-          `<b>${naam}</b> - <b>${area}</b> <br> (${locatie}, <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}" target="_blank">Google Maps</a>)`
-        )
-        .openOn(map);
-    });
+  const id = markerId(lat, lon);
+  const m = L.marker([lat, lon], { icon }).addTo(map);
+
+  // onthoud marker
+  markerById.set(id, m);
+
+  // initial style
+  applyVisitedStyle(m, visitedState.get(id) === true);
+
+  // popup on click (bouwt content dynamisch, zodat label klopt)
+  m.on("click", () => {
+    const v = visitedState.get(id) === true;
+    const btnLabel = v ? "Visited ✓" : "Visited";
+    const btnAria = v ? "Mark as not visited" : "Mark as visited";
+
+    const html = `
+      <b>${naam}</b> - <b>${area}</b><br />
+      (${locatie}, <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}" target="_blank" rel="noopener">Google Maps</a>)
+      <div style="margin-top:8px;">
+        <button class="visit-btn"
+                data-id="${id}"
+                data-visited="${v ? "true" : "false"}"
+                style="padding:6px 10px;border-radius:8px;border:1px solid rgba(0,0,0,.12);background:#fff;cursor:pointer;">
+          ${btnLabel}
+        </button>
+      </div>
+    `;
+
+    L.popup().setLatLng([lat, lon]).setContent(html).openOn(map);
+  });
+
+  return m;
 }
 
 const currentLocationMarker = L.icon({
@@ -319,6 +350,24 @@ if (window.SocketAPI) {
   const s = SocketAPI.socket;
   const myId = SocketAPI.getClientId();
 
+  s.on("visited:snapshot", (obj) => {
+    if (obj && typeof obj === "object") {
+      Object.entries(obj).forEach(([id, val]) => {
+        const visited = !!(val && val.visited);
+        visitedState.set(id, visited);
+        const m = markerById.get(id);
+        if (m) applyVisitedStyle(m, visited);
+      });
+    }
+  });
+
+  s.on("visited:update", ({ id, visited }) => {
+    if (!id) return;
+    visitedState.set(id, !!visited);
+    const m = markerById.get(id);
+    if (m) applyVisitedStyle(m, !!visited);
+  });
+
   s.on("peers:snapshot", (all) => {
     Object.entries(all || {}).forEach(([id, peer]) => {
       if (id === myId) return;
@@ -353,3 +402,32 @@ if (window.SocketAPI) {
     setOrCreateDraggable(lat, lng); // <-- nieuw
   });
 }
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".visit-btn");
+  if (!btn) return;
+
+  const id = btn.getAttribute("data-id");
+  const current = btn.getAttribute("data-visited") === "true";
+  const next = !current;
+
+  // lokale UI direct updaten
+  visitedState.set(id, next);
+  const marker = markerById.get(id);
+  if (marker) applyVisitedStyle(marker, next);
+
+  // knoplabel wisselen
+  btn.setAttribute("data-visited", next ? "true" : "false");
+  btn.textContent = next ? "Visited ✓" : "Visited";
+
+  // server informeren (socket of fallback HTTP)
+  if (window.SocketAPI && typeof SocketAPI.setVisited === "function") {
+    SocketAPI.setVisited(id, next);
+  } else {
+    fetch("/api/visited", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, visited: next }),
+    }).catch(() => {});
+  }
+});

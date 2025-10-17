@@ -55,6 +55,11 @@
     socket.emit("draggable:update", { lat, lng });
   }
 
+  function setVisited(id, visited) {
+    if (!socket.connected) return;
+    socket.emit("visited:set", { id, visited });
+  }
+
   function leave() {
     try {
       socket.emit("peer:leave", { clientId: getClientId() });
@@ -72,6 +77,7 @@
     updateName,
     sendLocation,
     updateDraggable,
+    setVisited,
     leave,
     getClientId,
   };
