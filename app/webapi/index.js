@@ -4,7 +4,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 
 const PORT = process.env.PORT || 8080;
-var draggablemarkerLocation = { lat:51.988488, lng: 5.896824 }; // Standaard locatie
+var draggablemarkerLocation = { lat: 51.988488, lng: 5.896824 };
 
 const app = express();
 app.use(express.json());
@@ -15,7 +15,6 @@ app.get("/healthcheck", (req, res) => {
 });
 
 app.get("/draggablemarker/location", (req, res) => {
-  // Voorbeeld endpoint voor draggable marker locatie ophalen
   res.status(200).json(draggablemarkerLocation);
 });
 
@@ -23,16 +22,16 @@ const server = http.createServer(app);
 
 // Socket.IO server
 const io = new Server(server, {
-  // nginx en front-end zitten op hetzelfde origin; CORS kan simpel blijven
   path: "/socket.io",
   transports: ["websocket", "polling"],
 });
 
-// In-memory presence (clientId -> { name, lat, lng, accuracy, ts })
 const peers = new Map();
 
 io.on("connection", (socket) => {
   let clientId = null;
+
+  socket.emit("draggable:snapshot", draggablemarkerLocation);
 
   socket.on("hello", ({ clientId: cid, name }) => {
     clientId = cid;
@@ -75,6 +74,13 @@ io.on("connection", (socket) => {
       });
     }
   );
+
+  // Marker updates
+  socket.on("draggable:update", ({ lat, lng }) => {
+    if (typeof lat !== "number" || typeof lng !== "number") return;
+    draggablemarkerLocation = { lat, lng };
+    socket.broadcast.emit("draggable:update", draggablemarkerLocation);
+  });
 
   socket.on("disconnect", () => {
     if (clientId && peers.has(clientId)) {

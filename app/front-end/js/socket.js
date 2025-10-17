@@ -50,6 +50,11 @@
     });
   }
 
+  function updateDraggable(lat, lng) {
+    if (!socket.connected) return;
+    socket.emit("draggable:update", { lat, lng });
+  }
+
   function leave() {
     try {
       socket.emit("peer:leave", { clientId: getClientId() });
@@ -66,6 +71,7 @@
     connect,
     updateName,
     sendLocation,
+    updateDraggable,
     leave,
     getClientId,
   };

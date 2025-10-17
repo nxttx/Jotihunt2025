@@ -35,6 +35,14 @@ function initMap() {
   if (window.SocketAPI) {
     SocketAPI.connect();
 
+    if (window.SocketAPI && typeof SocketAPI.updateDraggable !== "function") {
+      SocketAPI.updateDraggable = function (lat, lng) {
+        if (SocketAPI.socket?.connected) {
+          SocketAPI.socket.emit("draggable:update", { lat, lng });
+        }
+      };
+    }
+
     document
       .getElementById("name-input")
       ?.addEventListener("blur", function (e) {
@@ -71,7 +79,8 @@ async function loadMarkers() {
           location.long,
           MarkerAlpha,
           location.name,
-          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`
+          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`,
+          location.area
         );
         break;
       case "Bravo":
@@ -80,7 +89,8 @@ async function loadMarkers() {
           location.long,
           MarkerBravo,
           location.name,
-          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`
+          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`,
+          location.area
         );
         break;
       case "Charlie":
@@ -89,7 +99,8 @@ async function loadMarkers() {
           location.long,
           MarkerCharlie,
           location.name,
-          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`
+          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`,
+          location.area
         );
         break;
       case "Delta":
@@ -98,7 +109,8 @@ async function loadMarkers() {
           location.long,
           MarkerDelta,
           location.name,
-          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`
+          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`,
+          location.area
         );
         break;
       case "Echo":
@@ -107,7 +119,8 @@ async function loadMarkers() {
           location.long,
           MarkerEcho,
           location.name,
-          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`
+          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`,
+          location.area
         );
         break;
       case "Foxtrot":
@@ -116,7 +129,8 @@ async function loadMarkers() {
           location.long,
           MarkerFoxtrot,
           location.name,
-          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`
+          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`,
+          location.area
         );
         break;
       case "Golf":
@@ -125,7 +139,8 @@ async function loadMarkers() {
           location.long,
           MarkerGolf,
           location.name,
-          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`
+          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`,
+          location.area
         );
         break;
       case "Hotel":
@@ -134,7 +149,8 @@ async function loadMarkers() {
           location.long,
           MarkerHotel,
           location.name,
-          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`
+          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`,
+          location.area
         );
         break;
       case "Oscar":
@@ -143,7 +159,8 @@ async function loadMarkers() {
           location.long,
           MarkerOscar,
           location.name,
-          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`
+          `${location.street} ${location.housenumber} ${location.housenumber_addition}, ${location.city}, ${location.postcode}`,
+          location.area
         );
         break;
     }
@@ -172,26 +189,37 @@ async function loadDraggableMarker() {
   const lat = data.lat;
   const lng = data.lng;
 
-  draggableMarker = createLocationMarker(lat, lng, pin, "Draggable Marker", "Draggable Marker Location");
-  draggableMarker.dragging.enable();
-
-
-  draggableMarker.on("dragend", function (e) {
-    const position = e.target.getLatLng();
-    console.log("New position:", position.lat, position.lng);
-    // Hier kun je een verzoek sturen naar de server om de nieuwe locatie op te slaan @Janne
-  });
+  setOrCreateDraggable(lat, lng);
 }
 
+function setOrCreateDraggable(lat, lng) {
+  if (!draggableMarker) {
+    draggableMarker = L.marker([lat, lng], {
+      icon: pin,
+      draggable: true,
+    }).addTo(map);
 
-function createLocationMarker(lat, lon, icon, naam, locatie) {
+    draggableMarker.on("dragend", function (e) {
+      const p = e.target.getLatLng();
+      if (window.SocketAPI && typeof SocketAPI.updateDraggable === "function") {
+        SocketAPI.updateDraggable(p.lat, p.lng);
+      }
+    });
+  } else {
+    draggableMarker.setLatLng([lat, lng]);
+  }
+}
+
+function createLocationMarker(lat, lon, icon, naam, locatie, area) {
+  if (area === "Undefined") area = "Marker";
+
   return L.marker([lat, lon], { icon: icon })
     .addTo(map)
     .on("click", () => {
       L.popup()
         .setLatLng([lat, lon])
         .setContent(
-          `<b>${naam}</b><br>(${locatie}, <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}" target="_blank">Google Maps</a>)`
+          `<b>${naam}</b> - <b>${area}</b> <br> (${locatie}, <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}" target="_blank">Google Maps</a>)`
         )
         .openOn(map);
     });
@@ -300,5 +328,15 @@ if (window.SocketAPI) {
       map.removeLayer(m);
       peerMarkers.delete(clientId);
     }
+  });
+
+  s.on("draggable:snapshot", ({ lat, lng }) => {
+    if (typeof lat !== "number" || typeof lng !== "number") return;
+    setOrCreateDraggable(lat, lng); // <-- nieuw
+  });
+
+  s.on("draggable:update", ({ lat, lng }) => {
+    if (typeof lat !== "number" || typeof lng !== "number") return;
+    setOrCreateDraggable(lat, lng); // <-- nieuw
   });
 }
