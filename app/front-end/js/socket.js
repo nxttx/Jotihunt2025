@@ -1,3 +1,6 @@
+// =====================
+// Hoofdstuk: SocketAPI
+// =====================
 (() => {
   const socket = io({
     path: "/socket.io",
@@ -22,81 +25,63 @@
   function connect() {
     const cid = getClientId();
     if (!socket.connected) socket.connect();
-
-    if (socket.connected) {
+    const hello = () =>
       socket.emit("hello", { clientId: cid, name: getName() });
-    } else {
-      socket.once("connect", () => {
-        socket.emit("hello", { clientId: cid, name: getName() });
-      });
-    }
+    socket.connected ? hello() : socket.once("connect", hello);
   }
 
-  function updateName(name) {
-    socket.emit("hello", {
-      clientId: getClientId(),
-      name: (name || "").trim(),
-    });
-  }
+  const guard = () => socket.connected;
 
-  function sendLocation(lat, lng, accuracy) {
-    if (!socket.connected) return;
-    socket.emit("location:update", {
-      clientId: getClientId(),
-      name: getName(),
-      lat,
-      lng,
-      accuracy,
-    });
-  }
-
-  function updateDraggable(lat, lng) {
-    if (!socket.connected) return;
-    socket.emit("draggable:update", { lat, lng });
-  }
-
-  function setVisited(id, visited) {
-    if (!socket.connected) return;
-    socket.emit("visited:set", { id, visited });
-  }
-
-  function createVos(vos) {
-    if (!socket.connected) return;
-    socket.emit("vos:create", vos);
-  }
-
-  function updateVos(vos) {
-    if (!socket.connected) return;
-    socket.emit("vos:update", vos);
-  }
-
-  function removeVos(id) {
-    if (!socket.connected) return;
-    socket.emit("vos:remove", { id });
-  }
-
-  function leave() {
-    try {
-      socket.emit("peer:leave", { clientId: getClientId() });
-    } catch {}
-    try {
-      socket.close();
-    } catch {}
-  }
-
-  window.addEventListener("beforeunload", leave, { once: true });
-
-  window.SocketAPI = {
+  const api = {
     socket,
     connect,
-    updateName,
-    sendLocation,
-    updateDraggable,
-    setVisited,
-    createVos,
-    updateVos,
-    removeVos,
-    leave,
+    updateName(name) {
+      socket.emit("hello", {
+        clientId: getClientId(),
+        name: (name || "").trim(),
+      });
+    },
+    sendLocation(lat, lng, accuracy) {
+      if (!guard()) return;
+      socket.emit("location:update", {
+        clientId: getClientId(),
+        name: getName(),
+        lat,
+        lng,
+        accuracy,
+      });
+    },
+    updateDraggable(lat, lng) {
+      if (!guard()) return;
+      socket.emit("draggable:update", { lat, lng });
+    },
+    setVisited(id, visited) {
+      if (!guard()) return;
+      socket.emit("visited:set", { id, visited });
+    },
+    createVos(vos) {
+      if (!guard()) return;
+      socket.emit("vos:create", vos);
+    },
+    updateVos(vos) {
+      if (!guard()) return;
+      socket.emit("vos:update", vos);
+    },
+    removeVos(id) {
+      if (!guard()) return;
+      socket.emit("vos:remove", { id });
+    },
+    leave() {
+      try {
+        socket.emit("peer:leave", { clientId: getClientId() });
+      } catch {}
+      try {
+        socket.close();
+      } catch {}
+    },
     getClientId,
   };
+
+  window.addEventListener("beforeunload", api.leave, { once: true });
+  window.SocketAPI = api;
 })();
