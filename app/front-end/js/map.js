@@ -7,6 +7,11 @@ let draggableMarker;
 
 const VOS_SPEED_KMPH = 6;
 const VOS_SPEED_MPS = VOS_SPEED_KMPH * (1000 / 3600);
+const VOS_ICON_BLACK = L.icon({
+  ...L.Icon.Default.prototype.options,
+  iconUrl: "images/marker_black.png",
+  iconRetinaUrl: "images/marker_black.png",
+});
 
 // =====================
 // Hoofdstuk: Helpers
@@ -201,7 +206,8 @@ function setOrCreateDraggable(lat, lng) {
 function upsertVosOnMap(v) {
   const id = v.id;
   const pos = [v.lat, v.lng];
-  const icon = App.areaIcon(v.area);
+
+  const icon = App.Icons.Vos;
 
   let entry = vosLayers.get(id);
   if (!entry) {
@@ -238,7 +244,7 @@ function upsertVosOnMap(v) {
     vosLayers.set(id, { marker, circle, data: { ...v } });
   } else {
     entry.data = { ...entry.data, ...v };
-    entry.marker.setLatLng(pos).setIcon(icon);
+    entry.marker.setLatLng(pos).setIcon(App.Icons.Vos);
     const c = App.areaColor(entry.data.area);
     entry.circle.setLatLng(pos).setStyle({
       color: entry.data.area === "Oscar" ? "#333" : c,
