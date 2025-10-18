@@ -7,14 +7,6 @@ let draggableMarker;
 
 const VOS_SPEED_KMPH = 6;
 const VOS_SPEED_MPS = VOS_SPEED_KMPH * (1000 / 3600);
-const VOS_ICON_BLACK = L.icon({
-  ...L.Icon.Default.prototype.options,
-  iconUrl: "images/marker_black.png",
-  iconRetinaUrl: "images/marker_black.png",
-});
-
-let showVosCircles = true;
-let _rebuildRaf = null;
 
 // =====================
 // Hoofdstuk: Helpers
@@ -23,7 +15,7 @@ function radiusFromStart(startedAtISO) {
   const t0 = Date.parse(startedAtISO);
   if (!Number.isFinite(t0)) return 0;
   const dtSec = Math.max(0, (Date.now() - t0) / 1000);
-  return dtSec * VOS_SPEED_MPS;
+  return dtSec * VOS_SPEED_MPS; // meters
 }
 
 function markerId(lat, lon) {
@@ -34,22 +26,22 @@ function applyVisitedStyle(marker, visited) {
   marker.setOpacity(visited ? 0.5 : 1);
 }
 
-function scheduleRebuild() {
-  if (_rebuildRaf) return;
-  _rebuildRaf = requestAnimationFrame(() => {
-    _rebuildRaf = null;
-    rebuildVosGraphics();
-  });
+// Server-graph helper
+let latestVosGraph = null;
+function newestVosIdForArea(area) {
+  return latestVosGraph?.areas?.[area]?.newestId ?? null;
 }
 
 // =====================
 // Hoofdstuk: State
 // =====================
-const vosLayers = new Map();
-const markerById = new Map();
+const vosLayers = new Map(); // id -> { marker, circle, data }
+const markerById = new Map(); // location markers
 const visitedState = new Map();
 const peerMarkers = new Map();
-const areaPolylines = new Map();
+
+const areaPolylines = new Map(); // area -> L.Polyline
+let showVosCircles = true; // server-driven
 
 // =====================
 // Hoofdstuk: Init kaart + tilelayer + events
@@ -64,6 +56,7 @@ const areaPolylines = new Map();
   // klik -> nieuwe vos
   map.on("click", (e) => openVosModal(e.latlng.lat, e.latlng.lng));
 
+  // UI toggle (bind aan server-state)
   document.readyState === "loading"
     ? document.addEventListener("DOMContentLoaded", initCirclesToggle, {
         once: true,
@@ -86,37 +79,6 @@ const areaPolylines = new Map();
   }
 })();
 
-function initCirclesToggle() {
-  const panel = document.getElementById("name-panel");
-  if (!panel) return;
-
-  const wrap = document.createElement("div");
-  wrap.style.marginTop = "8px";
-  wrap.style.display = "flex";
-  wrap.style.alignItems = "center";
-  wrap.style.gap = "6px";
-
-  const input = document.createElement("input");
-  input.type = "checkbox";
-  input.id = "toggle-circles";
-  input.checked = true;
-
-  const label = document.createElement("label");
-  label.htmlFor = "toggle-circles";
-  label.className = "name-label";
-  label.style.margin = "0";
-  label.textContent = "Toon VOS-cirkels";
-
-  input.addEventListener("change", () => {
-    showVosCircles = input.checked;
-    scheduleRebuild();
-  });
-
-  wrap.appendChild(input);
-  wrap.appendChild(label);
-  panel.appendChild(wrap);
-}
-
 // =====================
 // Hoofdstuk: Locatie (eigen device)
 // =====================
@@ -133,7 +95,7 @@ function initCirclesToggle() {
       window.SocketAPI?.sendLocation?.(lat, lng);
     }
 
-    // VOS radii bijwerken
+    // VOS radii bijwerken (alleen bestaande cirkels)
     vosLayers.forEach(({ circle, data }) => {
       if (circle) circle.setRadius(radiusFromStart(data.startedAt));
     });
@@ -170,7 +132,7 @@ function upsertPeerMarker(id, name, latlng) {
 }
 
 // =====================
-// Hoofdstuk: Subscriptie‑markers (Jotihunt API)
+// Hoofdstuk: Subscriptie-markers (Jotihunt API)
 // =====================
 (async function loadMarkers() {
   try {
@@ -210,7 +172,7 @@ function createLocationMarker(lat, lon, icon, naam, locatie, area) {
 }
 
 // =====================
-// Hoofdstuk: Draggable marker (server‑gedeelde pin)
+// Hoofdstuk: Draggable marker (server-gedeelde pin)
 // =====================
 (async function loadDraggableMarker() {
   try {
@@ -269,48 +231,41 @@ function upsertVosOnMap(v) {
 
       const newestId = newestVosIdForArea(cur.area);
       const isNewest = newestId === id;
-      const effectiveEnabled = isNewest && cur.circleEnabled !== false; // default aan, maar alleen relevant voor nieuwste
+      const effectiveEnabled = isNewest && cur.circleEnabled !== false;
 
       const circleBtnHtml = isNewest
         ? `<button class="btn btn-outline btn-xs vos-circle-toggle" data-id="${id}" data-enabled="${
             effectiveEnabled ? "true" : "false"
           }">
-         Cirkel: ${effectiveEnabled ? "Aan" : "Uit"}
-       </button>`
-        : `<button class="btn btn-outline btn-xs" disabled title="Alleen de nieuwste VOS toont een cirkel">
-         Cirkel: Uit
-       </button>`;
+             Cirkel: ${effectiveEnabled ? "Aan" : "Uit"}
+           </button>`
+        : `<button class="btn btn-outline btn-xs" disabled title="Alleen de nieuwste VOS toont een cirkel">Cirkel: Uit</button>`;
 
       const html = `
-    <b>Vos</b> ${cur.label ? `— ${cur.label}` : ""}<br/>
-    <b>Area:</b> ${cur.area}<br/>
-    <b>Gestart:</b> ${startLocal}<br/>
-    <b>Radius:</b> ~${Math.round(r)} m<br/>
-    <div class="popup-actions">
-      <button class="btn btn-outline btn-xs vos-edit" data-id="${id}">Edit</button>
-      <button class="btn btn-danger  btn-xs vos-remove" data-id="${id}">Verwijder</button>
-      ${circleBtnHtml}
-      <a class="btn btn-outline btn-xs" href="https://www.google.com/maps/search/?api=1&query=${
-        cur.lat
-      },${cur.lng}" target="_blank" rel="noopener">Google Maps</a>
-    </div>`;
+        <b>Vos</b> ${cur.label ? `— ${cur.label}` : ""}<br/>
+        <b>Area:</b> ${cur.area}<br/>
+        <b>Gestart:</b> ${startLocal}<br/>
+        <b>Radius:</b> ~${Math.round(r)} m<br/>
+        <div class="popup-actions">
+          <button class="btn btn-outline btn-xs vos-edit" data-id="${id}">Edit</button>
+          <button class="btn btn-danger  btn-xs vos-remove" data-id="${id}">Verwijder</button>
+          ${circleBtnHtml}
+          <a class="btn btn-outline btn-xs" href="https://www.google.com/maps/search/?api=1&query=${
+            cur.lat
+          },${cur.lng}" target="_blank" rel="noopener">Google Maps</a>
+        </div>`;
       L.popup().setLatLng([cur.lat, cur.lng]).setContent(html).openOn(map);
     });
 
-    // ⬇️ geen cirkel hier; die wordt centraal beheerd
     vosLayers.set(id, { marker, circle: null, data: { ...v } });
   } else {
     entry.data = { ...entry.data, ...v };
     entry.marker.setLatLng(pos).setIcon(App.Icons.Vos);
-    // cirkel wordt centraal beheerd
   }
-
-  // (her)bouw polylines + nieuwste-cirkel per area
-  scheduleRebuild();
 }
 
 function removeVos(ids) {
-  ids.forEach((id) => {
+  (Array.isArray(ids) ? ids : [ids]).forEach((id) => {
     const layer = vosLayers.get(id);
     if (layer) {
       map.removeLayer(layer.marker);
@@ -318,7 +273,46 @@ function removeVos(ids) {
       vosLayers.delete(id);
     }
   });
-  scheduleRebuild();
+}
+
+// =====================
+// Hoofdstuk: UI toggle (server-bound)
+// =====================
+function initCirclesToggle() {
+  const panel = document.getElementById("name-panel");
+  if (!panel) return;
+
+  let wrap = document.getElementById("circles-toggle-wrap");
+  if (!wrap) {
+    wrap = document.createElement("div");
+    wrap.id = "circles-toggle-wrap";
+    wrap.style.marginTop = "8px";
+    wrap.style.display = "flex";
+    wrap.style.alignItems = "center";
+    wrap.style.gap = "6px";
+
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.id = "toggle-circles";
+
+    const label = document.createElement("label");
+    label.htmlFor = "toggle-circles";
+    label.className = "name-label";
+    label.style.margin = "0";
+    label.textContent = "Toon VOS-cirkels";
+
+    wrap.appendChild(input);
+    wrap.appendChild(label);
+    panel.appendChild(wrap);
+
+    input.addEventListener("change", () => {
+      const val = !!input.checked;
+      window.SocketAPI?.setGlobalCirclesVisible?.(val);
+    });
+  }
+
+  const input = document.getElementById("toggle-circles");
+  if (input) input.checked = !!showVosCircles;
 }
 
 // =====================
@@ -433,7 +427,7 @@ function openVosModal(lat, lng, existing) {
     const entry = vosLayers.get(existing.id);
     if (entry) {
       map.removeLayer(entry.marker);
-      map.removeLayer(entry.circle);
+      if (entry.circle) map.removeLayer(entry.circle);
       vosLayers.delete(existing.id);
     }
     window.SocketAPI?.removeVos?.(existing.id);
@@ -463,184 +457,8 @@ function openVosModal(lat, lng, existing) {
 }
 
 // =====================
-// Hoofdstuk: Document‑brede click‑delegatie (visited/vos knoppen)
+// Hoofdstuk: Polyline & cirkel toepassing (server-graph)
 // =====================
-
-document.addEventListener("click", (e) => {
-  const visitBtn = e.target.closest(".visit-btn");
-  if (visitBtn) {
-    const id = visitBtn.getAttribute("data-id");
-    const next = !(visitBtn.getAttribute("data-visited") === "true");
-    visitedState.set(id, next);
-    markerById.get(id) && applyVisitedStyle(markerById.get(id), next);
-    visitBtn.setAttribute("data-visited", next ? "true" : "false");
-    visitBtn.textContent = next ? "Visited \u2713" : "Visited";
-
-    if (window.SocketAPI?.setVisited) {
-      window.SocketAPI.setVisited(id, next);
-    } else {
-      fetch("/api/visited", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, visited: next }),
-      }).catch(() => {});
-    }
-    return; // early exit
-  }
-
-  const removeBtn = e.target.closest(".vos-remove");
-  if (removeBtn) {
-    const id = removeBtn.getAttribute("data-id");
-    if (!id || !confirm("Weet je zeker dat je deze vos wilt verwijderen?"))
-      return;
-    const entry = vosLayers.get(id);
-    if (entry) {
-      map.removeLayer(entry.marker);
-      map.removeLayer(entry.circle);
-      vosLayers.delete(id);
-    }
-    window.SocketAPI?.removeVos?.(id);
-    return;
-  }
-
-  const editBtn = e.target.closest(".vos-edit");
-  if (editBtn) {
-    const id = editBtn.getAttribute("data-id");
-    const entry = vosLayers.get(id);
-    if (!entry) return;
-    openVosModal(entry.data.lat, entry.data.lng, { ...entry.data });
-  }
-
-  const circleBtn = e.target.closest(".vos-circle-toggle");
-  if (circleBtn) {
-    if (circleBtn.hasAttribute("disabled")) return; // safety
-    const id = circleBtn.getAttribute("data-id");
-    const entry = vosLayers.get(id);
-    if (!entry) return;
-
-    // alleen nieuwste mag togglen
-    const newestId = newestVosIdForArea(entry.data.area);
-    if (entry.data.id !== newestId) return;
-
-    const current = entry.data.circleEnabled !== false; // default = aan
-    const next = !current;
-
-    entry.data.circleEnabled = next;
-    circleBtn.setAttribute("data-enabled", next ? "true" : "false");
-    circleBtn.textContent = `Cirkel: ${next ? "Aan" : "Uit"}`;
-
-    window.SocketAPI?.updateVos?.({ id, circleEnabled: next });
-    scheduleRebuild();
-    return;
-  }
-});
-
-// =====================
-// Hoofdstuk: Socket listeners (kaart‑relevant)
-// =====================
-(() => {
-  if (!window.SocketAPI?.socket) return;
-  const s = window.SocketAPI.socket;
-  const myId = window.SocketAPI.getClientId();
-
-  s.on("visited:snapshot", (obj) => {
-    if (!obj || typeof obj !== "object") return;
-    Object.entries(obj).forEach(([id, val]) => {
-      const visited = !!(val && val.visited);
-      visitedState.set(id, visited);
-      const m = markerById.get(id);
-      if (m) applyVisitedStyle(m, visited);
-    });
-  });
-
-  s.on("visited:update", ({ id, visited }) => {
-    if (!id) return;
-    visitedState.set(id, !!visited);
-    const m = markerById.get(id);
-    if (m) applyVisitedStyle(m, !!visited);
-  });
-
-  s.on("peers:snapshot", (all) => {
-    Object.entries(all || {}).forEach(([id, peer]) => {
-      if (id === myId) return;
-      if (typeof peer.lat === "number" && typeof peer.lng === "number") {
-        upsertPeerMarker(id, peer.name, [peer.lat, peer.lng]);
-      }
-    });
-  });
-
-  s.on("peer:update", ({ clientId, name, lat, lng }) => {
-    if (clientId === myId) return;
-    if (typeof lat === "number" && typeof lng === "number") {
-      upsertPeerMarker(clientId, name, [lat, lng]);
-    }
-  });
-
-  s.on("peer:leave", ({ clientId }) => {
-    const m = peerMarkers.get(clientId);
-    if (m) {
-      map.removeLayer(m);
-      peerMarkers.delete(clientId);
-    }
-  });
-
-  s.on("draggable:snapshot", ({ lat, lng }) => {
-    if (typeof lat === "number" && typeof lng === "number")
-      setOrCreateDraggable(lat, lng);
-  });
-  s.on("draggable:update", ({ lat, lng }) => {
-    if (typeof lat === "number" && typeof lng === "number")
-      setOrCreateDraggable(lat, lng);
-  });
-
-  s.on("vos:snapshot", (obj) => {
-    if (!obj) return;
-    Object.values(obj).forEach((v) => upsertVosOnMap(v));
-    scheduleRebuild();
-  });
-
-  s.on("vos:upsert", (v) => {
-    if (!v || typeof v.lat !== "number" || typeof v.lng !== "number") return;
-    upsertVosOnMap(v);
-  });
-  s.on("vos:remove", ({ id }) => {
-    const e = vosLayers.get(id);
-    if (!e) return;
-    map.removeLayer(e.marker);
-    map.removeLayer(e.circle);
-    vosLayers.delete(id);
-  });
-})();
-
-// =====================
-// Hoofdstuk: VOS graphics (polylines + cirkels)
-// =====================
-
-function newestVosIdForArea(area) {
-  let newestId = null;
-  let newestTs = -Infinity;
-  vosLayers.forEach(({ data }) => {
-    if (data.area !== area) return;
-    const ts = Date.parse(data.startedAt) || 0;
-    if (ts > newestTs) {
-      newestTs = ts;
-      newestId = data.id;
-    }
-  });
-  return newestId;
-}
-
-function ensurePolyline(area, coords, color) {
-  let pl = areaPolylines.get(area);
-  const style = { color, weight: 3, opacity: 0.9 };
-  if (!pl) {
-    pl = L.polyline(coords, style).addTo(map);
-    areaPolylines.set(area, pl);
-  } else {
-    pl.setLatLngs(coords).setStyle(style);
-  }
-}
-
 function removePolyline(area) {
   const pl = areaPolylines.get(area);
   if (pl) {
@@ -649,43 +467,47 @@ function removePolyline(area) {
   }
 }
 
-function rebuildVosGraphics() {
-  // groepeer per area
-  const byArea = new Map();
-  vosLayers.forEach((entry) => {
-    const a = entry.data.area;
-    if (!a) return;
-    if (!byArea.has(a)) byArea.set(a, []);
-    byArea.get(a).push(entry);
+function applyVosGraph(graph) {
+  latestVosGraph = graph || null;
+
+  const seenAreas = new Set();
+
+  // 1) Polylines per area exact zoals server ze levert
+  Object.entries(graph?.areas || {}).forEach(([area, info]) => {
+    seenAreas.add(area);
+    const color = App.areaColor(area);
+    let pl = areaPolylines.get(area);
+    if (!pl) {
+      pl = L.polyline(info.coords || [], {
+        color,
+        weight: 3,
+        opacity: 0.9,
+      }).addTo(map);
+      areaPolylines.set(area, pl);
+    } else {
+      pl.setLatLngs(info.coords || []).setStyle({
+        color,
+        weight: 3,
+        opacity: 0.9,
+      });
+    }
   });
 
-  // alle bekende areas (ook om orphan polylines op te ruimen)
-  const knownAreas = new Set([...byArea.keys(), ...areaPolylines.keys()]);
+  // 2) Polylines opruimen voor areas die niet meer bestaan
+  Array.from(areaPolylines.keys()).forEach((area) => {
+    if (!seenAreas.has(area)) removePolyline(area);
+  });
 
-  knownAreas.forEach((area) => {
-    const list = byArea.get(area) || [];
-
-    // sorteer oud -> nieuw
-    list.sort(
-      (A, B) =>
-        (Date.parse(A.data.startedAt) || 0) -
-        (Date.parse(B.data.startedAt) || 0)
-    );
-
-    // polyline upsert/remove
-    const coords = list.map((e) => [e.data.lat, e.data.lng]);
-    if (coords.length >= 2) {
-      ensurePolyline(area, coords, App.areaColor(area));
-    } else {
-      removePolyline(area);
-    }
-
-    // cirkel: alleen de nieuwste en alleen als toggle aan staat
-    const newestIdx = list.length - 1;
-    list.forEach((entry, idx) => {
+  // 3) Cirkel-policy: alleen newestId per area, global toggle + per-VOS toggle
+  Object.entries(graph?.areas || {}).forEach(([area, info]) => {
+    const newestId = info.newestId;
+    (info.order || []).forEach((id) => {
+      const entry = vosLayers.get(id);
+      if (!entry) return;
+      const isNewest = id === newestId;
       const enabledForThisVos = entry.data.circleEnabled !== false;
-      const shouldHaveCircle =
-        showVosCircles && idx === newestIdx && enabledForThisVos;
+      const shouldHaveCircle = showVosCircles && isNewest && enabledForThisVos;
+
       if (!shouldHaveCircle) {
         if (entry.circle) {
           map.removeLayer(entry.circle);
@@ -712,8 +534,189 @@ function rebuildVosGraphics() {
         }
       }
     });
-
-    // als area helemaal leeg is, polyline weg
-    if (list.length === 0) removePolyline(area);
   });
 }
+
+// =====================
+// Hoofdstuk: Document-brede click-delegatie (visited/vos knoppen)
+// =====================
+document.addEventListener("click", (e) => {
+  const visitBtn = e.target.closest(".visit-btn");
+  if (visitBtn) {
+    const id = visitBtn.getAttribute("data-id");
+    const next = !(visitBtn.getAttribute("data-visited") === "true");
+    visitedState.set(id, next);
+    markerById.get(id) && applyVisitedStyle(markerById.get(id), next);
+    visitBtn.setAttribute("data-visited", next ? "true" : "false");
+    visitBtn.textContent = next ? "Visited \u2713" : "Visited";
+
+    if (window.SocketAPI?.setVisited) {
+      window.SocketAPI.setVisited(id, next);
+    } else {
+      fetch("/api/visited", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, visited: next }),
+      }).catch(() => {});
+    }
+    return;
+  }
+
+  const removeBtn = e.target.closest(".vos-remove");
+  if (removeBtn) {
+    const id = removeBtn.getAttribute("data-id");
+    if (!id || !confirm("Weet je zeker dat je deze vos wilt verwijderen?"))
+      return;
+    // lokale cleanup
+    const entry = vosLayers.get(id);
+    if (entry) {
+      map.removeLayer(entry.marker);
+      if (entry.circle) map.removeLayer(entry.circle);
+      vosLayers.delete(id);
+    }
+    // server
+    window.SocketAPI?.removeVos?.(id);
+    return;
+  }
+
+  const editBtn = e.target.closest(".vos-edit");
+  if (editBtn) {
+    const id = editBtn.getAttribute("data-id");
+    const entry = vosLayers.get(id);
+    if (!entry) return;
+    openVosModal(entry.data.lat, entry.data.lng, { ...entry.data });
+    return;
+  }
+
+  const circleBtn = e.target.closest(".vos-circle-toggle");
+  if (circleBtn) {
+    if (circleBtn.hasAttribute("disabled")) return; // safety
+    const id = circleBtn.getAttribute("data-id");
+    const entry = vosLayers.get(id);
+    if (!entry) return;
+
+    // alleen nieuwste mag togglen
+    const newestId = newestVosIdForArea(entry.data.area);
+    if (entry.data.id !== newestId) return;
+
+    const current = entry.data.circleEnabled !== false;
+    const next = !current;
+
+    entry.data.circleEnabled = next;
+    circleBtn.setAttribute("data-enabled", next ? "true" : "false");
+    circleBtn.textContent = `Cirkel: ${next ? "Aan" : "Uit"}`;
+
+    window.SocketAPI?.updateVos?.({ id, circleEnabled: next });
+    return;
+  }
+});
+
+// =====================
+// Hoofdstuk: Socket listeners (kaart-relevant)
+// =====================
+(() => {
+  if (!window.SocketAPI?.socket) return;
+  const s = window.SocketAPI.socket;
+  const myId = window.SocketAPI.getClientId();
+
+  // visited
+  s.on("visited:snapshot", (obj) => {
+    if (!obj || typeof obj !== "object") return;
+    Object.entries(obj).forEach(([id, val]) => {
+      const visited = !!(val && val.visited);
+      visitedState.set(id, visited);
+      const m = markerById.get(id);
+      if (m) applyVisitedStyle(m, visited);
+    });
+  });
+  s.on("visited:update", ({ id, visited }) => {
+    if (!id) return;
+    visitedState.set(id, !!visited);
+    const m = markerById.get(id);
+    if (m) applyVisitedStyle(m, !!visited);
+  });
+
+  // peers
+  s.on("peers:snapshot", (all) => {
+    Object.entries(all || {}).forEach(([id, peer]) => {
+      if (id === myId) return;
+      if (typeof peer.lat === "number" && typeof peer.lng === "number") {
+        upsertPeerMarker(id, peer.name, [peer.lat, peer.lng]);
+      }
+    });
+  });
+  s.on("peer:update", ({ clientId, name, lat, lng }) => {
+    if (clientId === myId) return;
+    if (typeof lat === "number" && typeof lng === "number") {
+      upsertPeerMarker(clientId, name, [lat, lng]);
+    }
+  });
+  s.on("peer:leave", ({ clientId }) => {
+    const m = peerMarkers.get(clientId);
+    if (m) {
+      map.removeLayer(m);
+      peerMarkers.delete(clientId);
+    }
+  });
+
+  // draggable
+  s.on("draggable:snapshot", ({ lat, lng }) => {
+    if (typeof lat === "number" && typeof lng === "number")
+      setOrCreateDraggable(lat, lng);
+  });
+  s.on("draggable:update", ({ lat, lng }) => {
+    if (typeof lat === "number" && typeof lng === "number")
+      setOrCreateDraggable(lat, lng);
+  });
+
+  // ui toggle for circles
+  s.on("ui:circles:snapshot", ({ circlesVisible }) => {
+    showVosCircles = !!circlesVisible;
+    initCirclesToggle();
+    if (latestVosGraph) applyVosGraph(latestVosGraph);
+  });
+  s.on("ui:circles:set", ({ circlesVisible }) => {
+    showVosCircles = !!circlesVisible;
+    initCirclesToggle();
+    if (latestVosGraph) applyVosGraph(latestVosGraph);
+  });
+
+  // vos: raw snapshot – hard sync (prune lokale items die niet in snapshot zitten)
+  s.on("vos:snapshot", (obj) => {
+    const serverIds = new Set(Object.keys(obj || {}));
+
+    // remove local orphans
+    Array.from(vosLayers.keys()).forEach((id) => {
+      if (!serverIds.has(id)) {
+        const e = vosLayers.get(id);
+        if (e) {
+          map.removeLayer(e.marker);
+          if (e.circle) map.removeLayer(e.circle);
+        }
+        vosLayers.delete(id);
+      }
+    });
+
+    // upsert all from server
+    Object.values(obj || {}).forEach((v) => upsertVosOnMap(v));
+  });
+
+  // vos updates
+  s.on("vos:upsert", (v) => {
+    if (!v || typeof v.lat !== "number" || typeof v.lng !== "number") return;
+    upsertVosOnMap(v);
+  });
+
+  s.on("vos:remove", ({ id }) => {
+    const e = vosLayers.get(id);
+    if (!e) return;
+    map.removeLayer(e.marker);
+    if (e.circle) map.removeLayer(e.circle);
+    vosLayers.delete(id);
+  });
+
+  // server-graph is de bron voor lijnen & newest-cirkel
+  s.on("vos:graph", (graph) => {
+    applyVosGraph(graph);
+  });
+})();
