@@ -13,6 +13,9 @@ const VOS_ICON_BLACK = L.icon({
   iconRetinaUrl: "images/marker_black.png",
 });
 
+let showVosCircles = true;
+let _rebuildRaf = null;
+
 // =====================
 // Hoofdstuk: Helpers
 // =====================
@@ -20,7 +23,7 @@ function radiusFromStart(startedAtISO) {
   const t0 = Date.parse(startedAtISO);
   if (!Number.isFinite(t0)) return 0;
   const dtSec = Math.max(0, (Date.now() - t0) / 1000);
-  return dtSec * VOS_SPEED_MPS; // meters
+  return dtSec * VOS_SPEED_MPS;
 }
 
 function markerId(lat, lon) {
@@ -31,13 +34,22 @@ function applyVisitedStyle(marker, visited) {
   marker.setOpacity(visited ? 0.5 : 1);
 }
 
+function scheduleRebuild() {
+  if (_rebuildRaf) return;
+  _rebuildRaf = requestAnimationFrame(() => {
+    _rebuildRaf = null;
+    rebuildVosGraphics();
+  });
+}
+
 // =====================
 // Hoofdstuk: State
 // =====================
-const vosLayers = new Map(); // id -> { marker, circle, data }
-const markerById = new Map(); // location markers
+const vosLayers = new Map();
+const markerById = new Map();
 const visitedState = new Map();
 const peerMarkers = new Map();
+const areaPolylines = new Map();
 
 // =====================
 // Hoofdstuk: Init kaart + tilelayer + events
@@ -51,6 +63,12 @@ const peerMarkers = new Map();
 
   // klik -> nieuwe vos
   map.on("click", (e) => openVosModal(e.latlng.lat, e.latlng.lng));
+
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", initCirclesToggle, {
+        once: true,
+      })
+    : initCirclesToggle();
 
   // socket verbinding starten als beschikbaar
   window.SocketAPI?.connect?.();
@@ -67,6 +85,37 @@ const peerMarkers = new Map();
     };
   }
 })();
+
+function initCirclesToggle() {
+  const panel = document.getElementById("name-panel");
+  if (!panel) return;
+
+  const wrap = document.createElement("div");
+  wrap.style.marginTop = "8px";
+  wrap.style.display = "flex";
+  wrap.style.alignItems = "center";
+  wrap.style.gap = "6px";
+
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  input.id = "toggle-circles";
+  input.checked = true;
+
+  const label = document.createElement("label");
+  label.htmlFor = "toggle-circles";
+  label.className = "name-label";
+  label.style.margin = "0";
+  label.textContent = "Toon VOS-cirkels";
+
+  input.addEventListener("change", () => {
+    showVosCircles = input.checked;
+    scheduleRebuild();
+  });
+
+  wrap.appendChild(input);
+  wrap.appendChild(label);
+  panel.appendChild(wrap);
+}
 
 // =====================
 // Hoofdstuk: Locatie (eigen device)
@@ -85,9 +134,9 @@ const peerMarkers = new Map();
     }
 
     // VOS radii bijwerken
-    vosLayers.forEach(({ circle, data }) =>
-      circle.setRadius(radiusFromStart(data.startedAt))
-    );
+    vosLayers.forEach(({ circle, data }) => {
+      if (circle) circle.setRadius(radiusFromStart(data.startedAt));
+    });
   }, 5000);
 })();
 
@@ -207,7 +256,7 @@ function upsertVosOnMap(v) {
   const id = v.id;
   const pos = [v.lat, v.lng];
 
-  const icon = App.Icons.Vos;
+  const icon = App.Icons.Vos; // altijd zwart
 
   let entry = vosLayers.get(id);
   if (!entry) {
@@ -217,41 +266,37 @@ function upsertVosOnMap(v) {
       const cur = vosLayers.get(id)?.data || v;
       const r = radiusFromStart(cur.startedAt);
       const startLocal = new Date(cur.startedAt).toLocaleString();
+      const curEnabled = cur.circleEnabled !== false; // default = aan
       const html = `
-        <b>Vos</b> ${cur.label ? `— ${cur.label}` : ""}<br/>
-        <b>Area:</b> ${cur.area}<br/>
-        <b>Gestart:</b> ${startLocal}<br/>
-        <b>Radius:</b> ~${Math.round(r)} m<br/>
-        <div class="popup-actions">
-          <button class="btn btn-outline btn-xs vos-edit" data-id="${id}">Edit</button>
-          <button class="btn btn-danger  btn-xs vos-remove" data-id="${id}">Verwijder</button>
-          <a class="btn btn-outline btn-xs" href="https://www.google.com/maps/search/?api=1&query=${
-            cur.lat
-          },${cur.lng}" target="_blank" rel="noopener">Google Maps</a>
-        </div>`;
+          <b>Vos</b> ${cur.label ? `— ${cur.label}` : ""}<br/>
+          <b>Area:</b> ${cur.area}<br/>
+          <b>Gestart:</b> ${startLocal}<br/>
+          <b>Radius:</b> ~${Math.round(r)} m<br/>
+          <div class="popup-actions">
+            <button class="btn btn-outline btn-xs vos-edit" data-id="${id}">Edit</button>
+            <button class="btn btn-danger  btn-xs vos-remove" data-id="${id}">Verwijder</button>
+            <button class="btn btn-outline btn-xs vos-circle-toggle" data-id="${id}" data-enabled="${
+        curEnabled ? "true" : "false"
+      }">
+              Cirkel: ${curEnabled ? "Aan" : "Uit"}
+            </button>
+            <a class="btn btn-outline btn-xs" href="https://www.google.com/maps/search/?api=1&query=${
+              cur.lat
+            },${cur.lng}" target="_blank" rel="noopener">Google Maps</a>
+          </div>`;
       L.popup().setLatLng([cur.lat, cur.lng]).setContent(html).openOn(map);
     });
 
-    const color = App.areaColor(v.area);
-    const circle = L.circle(pos, {
-      radius: radiusFromStart(v.startedAt),
-      color: v.area === "Oscar" ? "#333" : color,
-      weight: 2,
-      fillColor: color,
-      fillOpacity: 0.15,
-    }).addTo(map);
-
-    vosLayers.set(id, { marker, circle, data: { ...v } });
+    // ⬇️ geen cirkel hier; die wordt centraal beheerd
+    vosLayers.set(id, { marker, circle: null, data: { ...v } });
   } else {
     entry.data = { ...entry.data, ...v };
     entry.marker.setLatLng(pos).setIcon(App.Icons.Vos);
-    const c = App.areaColor(entry.data.area);
-    entry.circle.setLatLng(pos).setStyle({
-      color: entry.data.area === "Oscar" ? "#333" : c,
-      fillColor: c,
-    });
-    entry.circle.setRadius(radiusFromStart(entry.data.startedAt));
+    // cirkel wordt centraal beheerd
   }
+
+  // (her)bouw polylines + nieuwste-cirkel per area
+  scheduleRebuild();
 }
 
 function removeVos(ids) {
@@ -259,10 +304,11 @@ function removeVos(ids) {
     const layer = vosLayers.get(id);
     if (layer) {
       map.removeLayer(layer.marker);
-      map.removeLayer(layer.circle);
+      if (layer.circle) map.removeLayer(layer.circle);
       vosLayers.delete(id);
     }
   });
+  scheduleRebuild();
 }
 
 // =====================
@@ -311,6 +357,12 @@ function openVosModal(lat, lng, existing) {
       <div class="grid-1">
         <label style="font-size:12px;color:#555;">Tijd (24h) <input id="vos-time" type="time" step="60" inputmode="numeric" class="input"></label>
       </div>
+      <div class="grid-1">
+        <label style="font-size:12px;color:#555; display:flex; align-items:center; gap:8px;">
+          <input id="vos-circle-enabled" type="checkbox" style="transform:translateY(1px)">
+          Afstandscirkel tonen
+        </label>
+      </div>
       <div class="modal-actions">
         <button id="vos-delete" class="btn btn-danger" style="display:${
           existing ? "inline-flex" : "none"
@@ -347,11 +399,13 @@ function openVosModal(lat, lng, existing) {
 
   const dateEl = box.querySelector("#vos-date");
   const timeEl = box.querySelector("#vos-time");
+  const circleEl = box.querySelector("#vos-circle-enabled");
   const { date, time } = existing?.startedAt
     ? toLocalParts(existing.startedAt)
     : toLocalParts(Date.now());
   dateEl.value = date;
   timeEl.value = time;
+  circleEl.checked = existing ? existing.circleEnabled !== false : true;
 
   const stopWheel = (ev) => ev.preventDefault();
   timeEl.addEventListener("wheel", stopWheel, { passive: false });
@@ -380,16 +434,17 @@ function openVosModal(lat, lng, existing) {
     const area = box.querySelector("#vos-area").value;
     const label = box.querySelector("#vos-label").value.trim();
     const startedAt = combineLocalToISO(dateEl.value, timeEl.value);
+    const circleEnabled = !!circleEl.checked;
 
     if (existing) {
-      const updated = { ...existing, area, label, startedAt };
+      const updated = { ...existing, area, label, startedAt, circleEnabled };
       upsertVosOnMap(updated);
       window.SocketAPI?.updateVos?.(updated);
     } else {
       const id =
         self.crypto?.randomUUID?.() ||
         "vos-" + Date.now() + "-" + Math.random().toString(36).slice(2);
-      const vos = { id, lat, lng, area, label, startedAt };
+      const vos = { id, lat, lng, area, label, startedAt, circleEnabled };
       upsertVosOnMap(vos);
       window.SocketAPI?.createVos?.(vos);
     }
@@ -444,6 +499,28 @@ document.addEventListener("click", (e) => {
     const entry = vosLayers.get(id);
     if (!entry) return;
     openVosModal(entry.data.lat, entry.data.lng, { ...entry.data });
+  }
+
+  const circleBtn = e.target.closest(".vos-circle-toggle");
+  if (circleBtn) {
+    const id = circleBtn.getAttribute("data-id");
+    const entry = vosLayers.get(id);
+    if (!entry) return;
+
+    const current = entry.data.circleEnabled !== false; // default = aan
+    const next = !current;
+
+    // update lokale state
+    entry.data.circleEnabled = next;
+
+    // UI-knop updaten
+    circleBtn.setAttribute("data-enabled", next ? "true" : "false");
+    circleBtn.textContent = `Cirkel: ${next ? "Aan" : "Uit"}`;
+
+    // server sync + redraw
+    window.SocketAPI?.updateVos?.({ id, circleEnabled: next });
+    scheduleRebuild();
+    return;
   }
 });
 
@@ -508,7 +585,9 @@ document.addEventListener("click", (e) => {
   s.on("vos:snapshot", (obj) => {
     if (!obj) return;
     Object.values(obj).forEach((v) => upsertVosOnMap(v));
+    scheduleRebuild();
   });
+
   s.on("vos:upsert", (v) => {
     if (!v || typeof v.lat !== "number" || typeof v.lng !== "number") return;
     upsertVosOnMap(v);
@@ -521,3 +600,95 @@ document.addEventListener("click", (e) => {
     vosLayers.delete(id);
   });
 })();
+
+// =====================
+// Hoofdstuk: VOS graphics (polylines + cirkels)
+// =====================
+
+function ensurePolyline(area, coords, color) {
+  let pl = areaPolylines.get(area);
+  const style = { color, weight: 3, opacity: 0.9 };
+  if (!pl) {
+    pl = L.polyline(coords, style).addTo(map);
+    areaPolylines.set(area, pl);
+  } else {
+    pl.setLatLngs(coords).setStyle(style);
+  }
+}
+
+function removePolyline(area) {
+  const pl = areaPolylines.get(area);
+  if (pl) {
+    map.removeLayer(pl);
+    areaPolylines.delete(area);
+  }
+}
+
+function rebuildVosGraphics() {
+  // groepeer per area
+  const byArea = new Map();
+  vosLayers.forEach((entry) => {
+    const a = entry.data.area;
+    if (!a) return;
+    if (!byArea.has(a)) byArea.set(a, []);
+    byArea.get(a).push(entry);
+  });
+
+  // alle bekende areas (ook om orphan polylines op te ruimen)
+  const knownAreas = new Set([...byArea.keys(), ...areaPolylines.keys()]);
+
+  knownAreas.forEach((area) => {
+    const list = byArea.get(area) || [];
+
+    // sorteer oud -> nieuw
+    list.sort(
+      (A, B) =>
+        (Date.parse(A.data.startedAt) || 0) -
+        (Date.parse(B.data.startedAt) || 0)
+    );
+
+    // polyline upsert/remove
+    const coords = list.map((e) => [e.data.lat, e.data.lng]);
+    if (coords.length >= 2) {
+      ensurePolyline(area, coords, App.areaColor(area));
+    } else {
+      removePolyline(area);
+    }
+
+    // cirkel: alleen de nieuwste en alleen als toggle aan staat
+    const newestIdx = list.length - 1;
+    list.forEach((entry, idx) => {
+      const enabledForThisVos = entry.data.circleEnabled !== false; // default = aan
+      const shouldHaveCircle =
+        showVosCircles && idx === newestIdx && enabledForThisVos;
+      if (!shouldHaveCircle) {
+        if (entry.circle) {
+          map.removeLayer(entry.circle);
+          entry.circle = null;
+        }
+      } else {
+        const color = App.areaColor(area);
+        if (!entry.circle) {
+          entry.circle = L.circle([entry.data.lat, entry.data.lng], {
+            radius: radiusFromStart(entry.data.startedAt),
+            color: area === "Oscar" ? "#333" : color,
+            weight: 2,
+            fillColor: color,
+            fillOpacity: 0.15,
+          }).addTo(map);
+        } else {
+          entry.circle
+            .setLatLng([entry.data.lat, entry.data.lng])
+            .setStyle({
+              color: area === "Oscar" ? "#333" : color,
+              fillColor: color,
+            })
+            .setRadius(radiusFromStart(entry.data.startedAt));
+        }
+      }
+    });
+
+    // als area helemaal leeg is, polyline weg
+    if (list.length === 0) removePolyline(area);
+  });
+}
