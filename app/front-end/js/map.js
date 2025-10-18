@@ -5,6 +5,197 @@ const map = L.map("map").setView([51.988488, 5.896824], 8);
 let myLocationMarker;
 let draggableMarker;
 
+// =====================
+// Routing (client-side) – LRM lazy loader + helpers
+// =====================
+let LRM_READY = false;
+let routingControl = null;
+let routeEtaPopup = null; // kleine ETA-popup op bestemming
+
+function injectOnce(id, tag, attrs = {}, inner = "") {
+  if (document.getElementById(id)) return;
+  const el = document.createElement(tag);
+  el.id = id;
+  Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+  if (inner) el.textContent = inner;
+  document.head.appendChild(el);
+}
+
+function ensureRoutingLoaded() {
+  if (LRM_READY || (window.L && L.Routing)) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    // LRM CSS
+    injectOnce("lrm-css", "link", {
+      rel: "stylesheet",
+      href: "https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css",
+    });
+    // Extra CSS: verberg paneel + style Cancel-knop
+    injectOnce(
+      "route-ui-css",
+      "style",
+      {},
+      `
+      .leaflet-routing-container { display: none !important; }
+      .route-cancel-bar {
+        position: fixed;
+        top: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: calc(var(--panel-z, 9999) + 1);
+        display: none;
+      }
+      .route-cancel-bar .btn {
+        padding: 10px 14px;
+        border-radius: 12px;
+        font: 600 14px/1 Inter, system-ui, sans-serif;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+      }
+      @media (max-width: 640px) {
+        .route-cancel-bar { top: 8px; }
+        .route-cancel-bar .btn { padding: 12px 16px; font-size: 15px; }
+      }
+      `
+    );
+    // LRM script
+    if (!document.getElementById("lrm-js")) {
+      const s = document.createElement("script");
+      s.id = "lrm-js";
+      s.src =
+        "https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js";
+      s.onload = () => {
+        LRM_READY = true;
+        resolve();
+      };
+      s.onerror = reject;
+      document.head.appendChild(s);
+    } else {
+      const check = () =>
+        window.L && L.Routing ? resolve() : setTimeout(check, 50);
+      check();
+    }
+  });
+}
+
+function ensureRouteCancelUI() {
+  if (document.getElementById("route-cancel-bar")) return;
+  const bar = document.createElement("div");
+  bar.id = "route-cancel-bar";
+  bar.className = "route-cancel-bar";
+  bar.innerHTML = `
+    <button id="route-cancel-btn" class="btn btn-danger">Cancel route</button>
+  `;
+  document.body.appendChild(bar);
+  document.getElementById("route-cancel-btn").addEventListener("click", () => {
+    destroyRoute();
+  });
+}
+function showRouteCancelUI() {
+  ensureRouteCancelUI();
+  const el = document.getElementById("route-cancel-bar");
+  if (el) el.style.display = "block";
+}
+function hideRouteCancelUI() {
+  const el = document.getElementById("route-cancel-bar");
+  if (el) el.style.display = "none";
+}
+
+function destroyRoute() {
+  if (routingControl) {
+    try {
+      map.removeControl(routingControl);
+    } catch {}
+    routingControl = null;
+  }
+  if (routeEtaPopup) {
+    try {
+      map.closePopup(routeEtaPopup);
+    } catch {}
+    routeEtaPopup = null;
+  }
+  hideRouteCancelUI();
+}
+
+function formatDurationSecs(secs) {
+  const m = Math.round(secs / 60);
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60);
+  const r = m % 60;
+  return r ? `${h}u ${r}m` : `${h}u`;
+}
+
+async function startRoute(fromLL, toLL, onETA) {
+  try {
+    await ensureRoutingLoaded();
+  } catch (e) {
+    alert("Routing-libs konden niet laden.");
+    return;
+  }
+  destroyRoute(); // eerst vorige route weg
+  showRouteCancelUI();
+
+  routingControl = L.Routing.control({
+    waypoints: [L.latLng(fromLL.lat, fromLL.lng), L.latLng(toLL.lat, toLL.lng)],
+    router: L.Routing.osrmv1({
+      serviceUrl: "https://router.project-osrm.org/route/v1",
+      profile: "driving",
+    }),
+    addWaypoints: false,
+    routeWhileDragging: false,
+    draggableWaypoints: false,
+    showAlternatives: false,
+    lineOptions: { styles: [{ weight: 5, opacity: 0.95 }] },
+    createMarker: () => null,
+  }).addTo(map);
+
+  routingControl.on("routesfound", (e) => {
+    const best = e.routes?.[0];
+    if (!best) return;
+    const secs = best.summary?.totalTime ?? 0;
+    const etaTxt = formatDurationSecs(secs);
+    onETA?.(etaTxt);
+
+    // ETA popup op bestemming
+    routeEtaPopup = L.popup({ autoPan: true })
+      .setLatLng([toLL.lat, toLL.lng])
+      .setContent(`<b>Route</b><br>ETA: ~${etaTxt}`)
+      .openOn(map);
+  });
+
+  routingControl.on("routingerror", () => {
+    alert("Route berekenen mislukt.");
+    destroyRoute();
+  });
+}
+
+function routeFromCurrentTo(target, updateBtnEl) {
+  if (!myLocationMarker) {
+    map.locate({ enableHighAccuracy: true });
+    alert("Je locatie is nog niet bekend. Probeer zo opnieuw.");
+    return;
+  }
+  const from = myLocationMarker.getLatLng();
+  const to = target;
+
+  if (updateBtnEl) {
+    updateBtnEl.textContent = "Route (berekenen...)";
+    updateBtnEl.disabled = true;
+  }
+
+  startRoute(
+    { lat: from.lat, lng: from.lng },
+    { lat: to.lat, lng: to.lng },
+    (etaTxt) => {
+      if (updateBtnEl) {
+        updateBtnEl.textContent = `Route (~${etaTxt})`;
+        updateBtnEl.disabled = false;
+      }
+    }
+  );
+}
+
+// =====================
+// Hoofdstuk: Snelheden (VOS)
+// =====================
 const VOS_SPEED_KMPH = 6;
 const VOS_SPEED_MPS = VOS_SPEED_KMPH * (1000 / 3600);
 
@@ -71,10 +262,13 @@ const areaPolylines = new Map();
       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   }).addTo(map);
 
-  map.on("click", (e) => openVosModal(e.latlng.lat, e.latlng.lng));
+  // Klik op de kaart -> popup met acties
+  map.on("click", (e) => showMapActionPopup(e.latlng));
 
+  // socket verbinding starten als beschikbaar
   window.SocketAPI?.connect?.();
 
+  // Draggable updates doorgeven (fallback als functie nog niet bestond)
   if (
     window.SocketAPI &&
     typeof window.SocketAPI.updateDraggable !== "function"
@@ -85,7 +279,21 @@ const areaPolylines = new Map();
       }
     };
   }
+
+  // Zorg dat de Cancel-route UI bestaat
+  ensureRouteCancelUI();
 })();
+
+function showMapActionPopup(latlng) {
+  const html = `
+    <b>Acties</b><br/>
+    <div class="popup-actions">
+      <button class="btn btn-outline btn-xs route-here" data-lat="${latlng.lat}" data-lng="${latlng.lng}">Route hierheen</button>
+      <button class="btn btn-primary btn-xs vos-create-here" data-lat="${latlng.lat}" data-lng="${latlng.lng}">VOS aanmaken</button>
+    </div>
+  `;
+  L.popup().setLatLng(latlng).setContent(html).openOn(map);
+}
 
 // =====================
 // Hoofdstuk: Locatie (eigen device)
@@ -103,6 +311,7 @@ const areaPolylines = new Map();
       window.SocketAPI?.sendLocation?.(lat, lng);
     }
 
+    // VOS radii bijwerken (alleen bestaande cirkels)
     vosLayers.forEach(({ circle, data }) => {
       if (circle) circle.setRadius(radiusFromStart(data.startedAt));
     });
@@ -169,6 +378,7 @@ function createLocationMarker(lat, lon, icon, naam, locatie, area) {
       <b>${naam}</b> - <b>${area}</b><br/>
       (${locatie}, <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}" target="_blank" rel="noopener">Google Maps</a>)
       <div class="popup-actions">
+        <button class="btn btn-outline btn-xs route-to" data-lat="${lat}" data-lng="${lon}">Route (~ETA)</button>
         <button class="btn btn-outline btn-xs visit-btn" data-id="${id}" data-visited="${
       v ? "true" : "false"
     }">${btnLabel}</button>
@@ -208,8 +418,11 @@ function setOrCreateDraggable(lat, lng) {
       L.popup()
         .setLatLng(p)
         .setContent(
-          `<b>Draggable Marker</b><br>` +
-            `<a href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}" target="_blank" rel="noopener">Google Maps</a>`
+          `<b>Draggable Marker</b><br>
+           <div class="popup-actions">
+             <button class="btn btn-outline btn-xs route-to" data-lat="${p.lat}" data-lng="${p.lng}">Route (~ETA)</button>
+             <a class="btn btn-outline btn-xs" href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}" target="_blank" rel="noopener">Google Maps</a>
+           </div>`
         )
         .openOn(map);
     });
@@ -224,8 +437,7 @@ function setOrCreateDraggable(lat, lng) {
 function upsertVosOnMap(v) {
   const id = v.id;
   const pos = [v.lat, v.lng];
-
-  const icon = App.Icons.Vos;
+  const icon = App.Icons.Vos; // altijd zwart
 
   let entry = vosLayers.get(id);
   if (!entry) {
@@ -254,6 +466,9 @@ function upsertVosOnMap(v) {
         <b>Gestart:</b> ${startLocal}<br/>
         <b>Radius:</b> ~${Math.round(r)} m<br/>
         <div class="popup-actions">
+          <button class="btn btn-outline btn-xs route-to" data-lat="${
+            cur.lat
+          }" data-lng="${cur.lng}">Route (~ETA)</button>
           <button class="btn btn-outline btn-xs vos-edit" data-id="${id}">Edit</button>
           <button class="btn btn-danger  btn-xs vos-remove" data-id="${id}">Verwijder</button>
           ${circleBtnHtml}
@@ -398,9 +613,7 @@ function openVosModal(lat, lng, existing) {
       if (entry.circle) map.removeLayer(entry.circle);
       vosLayers.delete(existing.id);
     }
-
     closePopupIfVos(existing.id);
-
     window.SocketAPI?.removeVos?.(existing.id);
     document.body.removeChild(wrap);
   };
@@ -506,9 +719,10 @@ function applyVosGraph(graph) {
 }
 
 // =====================
-// Hoofdstuk: Document-brede click-delegatie (visited/vos knoppen)
+// Hoofdstuk: Document-brede click-delegatie (visited/vos/route knoppen)
 // =====================
 document.addEventListener("click", (e) => {
+  // Visited toggle
   const visitBtn = e.target.closest(".visit-btn");
   if (visitBtn) {
     const id = visitBtn.getAttribute("data-id");
@@ -530,6 +744,7 @@ document.addEventListener("click", (e) => {
     return;
   }
 
+  // VOS verwijderen
   const removeBtn = e.target.closest(".vos-remove");
   if (removeBtn) {
     const id = removeBtn.getAttribute("data-id");
@@ -544,11 +759,11 @@ document.addEventListener("click", (e) => {
     }
 
     closePopupIfVos(id);
-
     window.SocketAPI?.removeVos?.(id);
     return;
   }
 
+  // VOS edit
   const editBtn = e.target.closest(".vos-edit");
   if (editBtn) {
     const id = editBtn.getAttribute("data-id");
@@ -558,9 +773,10 @@ document.addEventListener("click", (e) => {
     return;
   }
 
+  // Cirkel toggle (alleen nieuwste)
   const circleBtn = e.target.closest(".vos-circle-toggle");
   if (circleBtn) {
-    if (circleBtn.hasAttribute("disabled")) return; // safety
+    if (circleBtn.hasAttribute("disabled")) return;
     const id = circleBtn.getAttribute("data-id");
     const entry = vosLayers.get(id);
     if (!entry) return;
@@ -576,6 +792,36 @@ document.addEventListener("click", (e) => {
     circleBtn.textContent = `Cirkel: ${next ? "Aan" : "Uit"}`;
 
     window.SocketAPI?.updateVos?.({ id, circleEnabled: next });
+    return;
+  }
+
+  // Route-knoppen (popups bij markers & draggable)
+  const routeToBtn = e.target.closest(".route-to");
+  if (routeToBtn) {
+    const lat = parseFloat(routeToBtn.getAttribute("data-lat"));
+    const lng = parseFloat(routeToBtn.getAttribute("data-lng"));
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+    routeFromCurrentTo({ lat, lng }, routeToBtn);
+    return;
+  }
+
+  // Klik op kaart -> "Route hierheen"
+  const routeHereBtn = e.target.closest(".route-here");
+  if (routeHereBtn) {
+    const lat = parseFloat(routeHereBtn.getAttribute("data-lat"));
+    const lng = parseFloat(routeHereBtn.getAttribute("data-lng"));
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+    routeFromCurrentTo({ lat, lng }, routeHereBtn);
+    return;
+  }
+
+  // Klik op kaart -> "VOS aanmaken"
+  const vosCreateBtn = e.target.closest(".vos-create-here");
+  if (vosCreateBtn) {
+    const lat = parseFloat(vosCreateBtn.getAttribute("data-lat"));
+    const lng = parseFloat(vosCreateBtn.getAttribute("data-lng"));
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+    openVosModal(lat, lng);
     return;
   }
 });
