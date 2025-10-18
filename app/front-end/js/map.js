@@ -266,24 +266,34 @@ function upsertVosOnMap(v) {
       const cur = vosLayers.get(id)?.data || v;
       const r = radiusFromStart(cur.startedAt);
       const startLocal = new Date(cur.startedAt).toLocaleString();
-      const curEnabled = cur.circleEnabled !== false; // default = aan
+
+      const newestId = newestVosIdForArea(cur.area);
+      const isNewest = newestId === id;
+      const effectiveEnabled = isNewest && cur.circleEnabled !== false; // default aan, maar alleen relevant voor nieuwste
+
+      const circleBtnHtml = isNewest
+        ? `<button class="btn btn-outline btn-xs vos-circle-toggle" data-id="${id}" data-enabled="${
+            effectiveEnabled ? "true" : "false"
+          }">
+         Cirkel: ${effectiveEnabled ? "Aan" : "Uit"}
+       </button>`
+        : `<button class="btn btn-outline btn-xs" disabled title="Alleen de nieuwste VOS toont een cirkel">
+         Cirkel: Uit
+       </button>`;
+
       const html = `
-          <b>Vos</b> ${cur.label ? `— ${cur.label}` : ""}<br/>
-          <b>Area:</b> ${cur.area}<br/>
-          <b>Gestart:</b> ${startLocal}<br/>
-          <b>Radius:</b> ~${Math.round(r)} m<br/>
-          <div class="popup-actions">
-            <button class="btn btn-outline btn-xs vos-edit" data-id="${id}">Edit</button>
-            <button class="btn btn-danger  btn-xs vos-remove" data-id="${id}">Verwijder</button>
-            <button class="btn btn-outline btn-xs vos-circle-toggle" data-id="${id}" data-enabled="${
-        curEnabled ? "true" : "false"
-      }">
-              Cirkel: ${curEnabled ? "Aan" : "Uit"}
-            </button>
-            <a class="btn btn-outline btn-xs" href="https://www.google.com/maps/search/?api=1&query=${
-              cur.lat
-            },${cur.lng}" target="_blank" rel="noopener">Google Maps</a>
-          </div>`;
+    <b>Vos</b> ${cur.label ? `— ${cur.label}` : ""}<br/>
+    <b>Area:</b> ${cur.area}<br/>
+    <b>Gestart:</b> ${startLocal}<br/>
+    <b>Radius:</b> ~${Math.round(r)} m<br/>
+    <div class="popup-actions">
+      <button class="btn btn-outline btn-xs vos-edit" data-id="${id}">Edit</button>
+      <button class="btn btn-danger  btn-xs vos-remove" data-id="${id}">Verwijder</button>
+      ${circleBtnHtml}
+      <a class="btn btn-outline btn-xs" href="https://www.google.com/maps/search/?api=1&query=${
+        cur.lat
+      },${cur.lng}" target="_blank" rel="noopener">Google Maps</a>
+    </div>`;
       L.popup().setLatLng([cur.lat, cur.lng]).setContent(html).openOn(map);
     });
 
@@ -503,21 +513,22 @@ document.addEventListener("click", (e) => {
 
   const circleBtn = e.target.closest(".vos-circle-toggle");
   if (circleBtn) {
+    if (circleBtn.hasAttribute("disabled")) return; // safety
     const id = circleBtn.getAttribute("data-id");
     const entry = vosLayers.get(id);
     if (!entry) return;
 
+    // alleen nieuwste mag togglen
+    const newestId = newestVosIdForArea(entry.data.area);
+    if (entry.data.id !== newestId) return;
+
     const current = entry.data.circleEnabled !== false; // default = aan
     const next = !current;
 
-    // update lokale state
     entry.data.circleEnabled = next;
-
-    // UI-knop updaten
     circleBtn.setAttribute("data-enabled", next ? "true" : "false");
     circleBtn.textContent = `Cirkel: ${next ? "Aan" : "Uit"}`;
 
-    // server sync + redraw
     window.SocketAPI?.updateVos?.({ id, circleEnabled: next });
     scheduleRebuild();
     return;
@@ -605,6 +616,20 @@ document.addEventListener("click", (e) => {
 // Hoofdstuk: VOS graphics (polylines + cirkels)
 // =====================
 
+function newestVosIdForArea(area) {
+  let newestId = null;
+  let newestTs = -Infinity;
+  vosLayers.forEach(({ data }) => {
+    if (data.area !== area) return;
+    const ts = Date.parse(data.startedAt) || 0;
+    if (ts > newestTs) {
+      newestTs = ts;
+      newestId = data.id;
+    }
+  });
+  return newestId;
+}
+
 function ensurePolyline(area, coords, color) {
   let pl = areaPolylines.get(area);
   const style = { color, weight: 3, opacity: 0.9 };
@@ -658,7 +683,7 @@ function rebuildVosGraphics() {
     // cirkel: alleen de nieuwste en alleen als toggle aan staat
     const newestIdx = list.length - 1;
     list.forEach((entry, idx) => {
-      const enabledForThisVos = entry.data.circleEnabled !== false; // default = aan
+      const enabledForThisVos = entry.data.circleEnabled !== false;
       const shouldHaveCircle =
         showVosCircles && idx === newestIdx && enabledForThisVos;
       if (!shouldHaveCircle) {
