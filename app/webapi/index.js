@@ -49,24 +49,9 @@ try {
   db.push("/draggable", draggablemarkerLocation, true);
 }
 
-let uiStore = { circlesVisible: true };
-try {
-  const u = db.getData("/ui");
-  if (typeof u?.circlesVisible === "boolean") {
-    uiStore = u;
-  } else {
-    db.push("/ui", uiStore, true);
-  }
-} catch {
-  db.push("/ui", uiStore, true);
-}
-
 // ============== Helpers ==============
 
-// Maak een “graph” van de VOS’en per area:
-// - order: array met ids oud -> nieuw
-// - newestId
-// - coords: polyline volgorde
+// Graph van VOS per area
 function computeVosGraph(store) {
   const byArea = new Map();
   Object.values(store || {}).forEach((v) => {
@@ -86,19 +71,15 @@ function computeVosGraph(store) {
     areas[area] = { order, newestId, coords };
   }
 
-  return {
-    version: Date.now(),
-    areas,
-  };
+  return { version: Date.now(), areas };
 }
 
 function persistVosStoreHard() {
-  // hard overwrite (belt & braces) to prevent stale keys
+  // hard overwrite /vos zodat geen zombie keys achterblijven
   db.push("/vos", vosStore, true);
 }
 
 // ============== API Endpoints ==============
-
 app.get("/healthcheck", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
@@ -110,9 +91,8 @@ app.get("/draggablemarker/location", (req, res) => {
 app.get("/visited", (req, res) => res.json(visitedStore));
 app.get("/vos", (req, res) => res.json(vosStore));
 app.get("/vos/graph", (req, res) => res.json(computeVosGraph(vosStore)));
-app.get("/ui", (req, res) => res.json(uiStore));
 
-// REST fallback to delete (handig voor debug)
+// Handige REST delete (debug)
 app.delete("/vos/:id", (req, res) => {
   const id = req.params.id;
   if (!id || !vosStore[id]) return res.status(404).json({ error: "not found" });
@@ -133,7 +113,6 @@ app.delete("/vos/:id", (req, res) => {
 });
 
 // ============== HTTP + Socket.IO Server ==============
-
 const server = http.createServer(app);
 const io = new Server(server, {
   path: "/socket.io",
@@ -146,16 +125,13 @@ const peers = new Map();
 io.on("connection", (socket) => {
   let clientId = null;
 
-  // Init snapshots voor nieuwe client
+  // Init snapshots
   socket.emit("draggable:snapshot", draggablemarkerLocation);
   socket.emit("visited:snapshot", visitedStore);
   socket.emit("vos:snapshot", vosStore);
   socket.emit("vos:graph", computeVosGraph(vosStore));
-  socket.emit("ui:circles:snapshot", {
-    circlesVisible: uiStore.circlesVisible,
-  });
 
-  // Peer “hello”
+  // Peer hello
   socket.on("hello", ({ clientId: cid, name }) => {
     clientId = cid;
     if (!clientId) return;
@@ -173,7 +149,7 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("peer:join", { clientId, name: name || "Anoniem" });
   });
 
-  // ===== Visited =====
+  // Visited
   socket.on("visited:set", ({ id, visited }) => {
     if (!id || typeof visited !== "boolean") return;
 
@@ -187,7 +163,7 @@ io.on("connection", (socket) => {
     io.emit("visited:update", { id, visited: visitedStore[id].visited });
   });
 
-  // ===== VOS create / update / remove =====
+  // VOS create / update / remove
   socket.on("vos:create", (payload) => {
     const { id, lat, lng, area, startedAt, label, circleEnabled } =
       payload || {};
@@ -271,22 +247,7 @@ io.on("connection", (socket) => {
     io.emit("vos:graph", computeVosGraph(vosStore));
   });
 
-  // ===== UI: global cirkels-toggle (persisted) =====
-  socket.on("ui:circles:set", ({ circlesVisible }) => {
-    if (typeof circlesVisible !== "boolean") return;
-
-    uiStore.circlesVisible = circlesVisible;
-    try {
-      db.push("/ui", uiStore, true);
-    } catch (e) {
-      console.error("DB push ui error:", e);
-    }
-
-    io.emit("ui:circles:set", { circlesVisible });
-    io.emit("vos:graph", computeVosGraph(vosStore));
-  });
-
-  // ===== Locatie updates =====
+  // Locatie updates
   socket.on(
     "location:update",
     ({ clientId: cid, name, lat, lng, accuracy }) => {
@@ -307,7 +268,7 @@ io.on("connection", (socket) => {
     }
   );
 
-  // ===== Draggable marker (persisted) =====
+  // Draggable (persisted)
   socket.on("draggable:update", ({ lat, lng }) => {
     if (typeof lat !== "number" || typeof lng !== "number") return;
 

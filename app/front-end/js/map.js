@@ -15,7 +15,7 @@ function radiusFromStart(startedAtISO) {
   const t0 = Date.parse(startedAtISO);
   if (!Number.isFinite(t0)) return 0;
   const dtSec = Math.max(0, (Date.now() - t0) / 1000);
-  return dtSec * VOS_SPEED_MPS; // meters
+  return dtSec * VOS_SPEED_MPS;
 }
 
 function markerId(lat, lon) {
@@ -32,16 +32,34 @@ function newestVosIdForArea(area) {
   return latestVosGraph?.areas?.[area]?.newestId ?? null;
 }
 
+function closePopupIfVos(id) {
+  const p = map && map._popup;
+  if (!p) return;
+  const c = p.getContent && p.getContent();
+  if (!c) return;
+
+  if (typeof c === "string") {
+    if (
+      c.includes(`class="btn btn-danger  btn-xs vos-remove"`) &&
+      c.includes(`data-id="${id}"`)
+    ) {
+      map.closePopup();
+    }
+  } else if (c instanceof HTMLElement) {
+    const btn = c.querySelector(`.vos-remove[data-id="${id}"]`);
+    if (btn) map.closePopup();
+  }
+}
+
 // =====================
 // Hoofdstuk: State
 // =====================
-const vosLayers = new Map(); // id -> { marker, circle, data }
-const markerById = new Map(); // location markers
+const vosLayers = new Map();
+const markerById = new Map();
 const visitedState = new Map();
 const peerMarkers = new Map();
 
-const areaPolylines = new Map(); // area -> L.Polyline
-let showVosCircles = true; // server-driven
+const areaPolylines = new Map();
 
 // =====================
 // Hoofdstuk: Init kaart + tilelayer + events
@@ -53,20 +71,10 @@ let showVosCircles = true; // server-driven
       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   }).addTo(map);
 
-  // klik -> nieuwe vos
   map.on("click", (e) => openVosModal(e.latlng.lat, e.latlng.lng));
 
-  // UI toggle (bind aan server-state)
-  document.readyState === "loading"
-    ? document.addEventListener("DOMContentLoaded", initCirclesToggle, {
-        once: true,
-      })
-    : initCirclesToggle();
-
-  // socket verbinding starten als beschikbaar
   window.SocketAPI?.connect?.();
 
-  // Draggable updates doorgeven (fallback als functie nog niet bestond)
   if (
     window.SocketAPI &&
     typeof window.SocketAPI.updateDraggable !== "function"
@@ -95,7 +103,6 @@ let showVosCircles = true; // server-driven
       window.SocketAPI?.sendLocation?.(lat, lng);
     }
 
-    // VOS radii bijwerken (alleen bestaande cirkels)
     vosLayers.forEach(({ circle, data }) => {
       if (circle) circle.setRadius(radiusFromStart(data.startedAt));
     });
@@ -218,7 +225,7 @@ function upsertVosOnMap(v) {
   const id = v.id;
   const pos = [v.lat, v.lng];
 
-  const icon = App.Icons.Vos; // altijd zwart
+  const icon = App.Icons.Vos;
 
   let entry = vosLayers.get(id);
   if (!entry) {
@@ -273,46 +280,6 @@ function removeVos(ids) {
       vosLayers.delete(id);
     }
   });
-}
-
-// =====================
-// Hoofdstuk: UI toggle (server-bound)
-// =====================
-function initCirclesToggle() {
-  const panel = document.getElementById("name-panel");
-  if (!panel) return;
-
-  let wrap = document.getElementById("circles-toggle-wrap");
-  if (!wrap) {
-    wrap = document.createElement("div");
-    wrap.id = "circles-toggle-wrap";
-    wrap.style.marginTop = "8px";
-    wrap.style.display = "flex";
-    wrap.style.alignItems = "center";
-    wrap.style.gap = "6px";
-
-    const input = document.createElement("input");
-    input.type = "checkbox";
-    input.id = "toggle-circles";
-
-    const label = document.createElement("label");
-    label.htmlFor = "toggle-circles";
-    label.className = "name-label";
-    label.style.margin = "0";
-    label.textContent = "Toon VOS-cirkels";
-
-    wrap.appendChild(input);
-    wrap.appendChild(label);
-    panel.appendChild(wrap);
-
-    input.addEventListener("change", () => {
-      const val = !!input.checked;
-      window.SocketAPI?.setGlobalCirclesVisible?.(val);
-    });
-  }
-
-  const input = document.getElementById("toggle-circles");
-  if (input) input.checked = !!showVosCircles;
 }
 
 // =====================
@@ -424,12 +391,16 @@ function openVosModal(lat, lng, existing) {
   box.querySelector("#vos-delete").onclick = () => {
     if (!existing) return;
     if (!confirm("Zeker weten verwijderen?")) return;
+
     const entry = vosLayers.get(existing.id);
     if (entry) {
       map.removeLayer(entry.marker);
       if (entry.circle) map.removeLayer(entry.circle);
       vosLayers.delete(existing.id);
     }
+
+    closePopupIfVos(existing.id);
+
     window.SocketAPI?.removeVos?.(existing.id);
     document.body.removeChild(wrap);
   };
@@ -472,7 +443,6 @@ function applyVosGraph(graph) {
 
   const seenAreas = new Set();
 
-  // 1) Polylines per area exact zoals server ze levert
   Object.entries(graph?.areas || {}).forEach(([area, info]) => {
     seenAreas.add(area);
     const color = App.areaColor(area);
@@ -493,12 +463,10 @@ function applyVosGraph(graph) {
     }
   });
 
-  // 2) Polylines opruimen voor areas die niet meer bestaan
   Array.from(areaPolylines.keys()).forEach((area) => {
     if (!seenAreas.has(area)) removePolyline(area);
   });
 
-  // 3) Cirkel-policy: alleen newestId per area, global toggle + per-VOS toggle
   Object.entries(graph?.areas || {}).forEach(([area, info]) => {
     const newestId = info.newestId;
     (info.order || []).forEach((id) => {
@@ -506,7 +474,7 @@ function applyVosGraph(graph) {
       if (!entry) return;
       const isNewest = id === newestId;
       const enabledForThisVos = entry.data.circleEnabled !== false;
-      const shouldHaveCircle = showVosCircles && isNewest && enabledForThisVos;
+      const shouldHaveCircle = isNewest && enabledForThisVos;
 
       if (!shouldHaveCircle) {
         if (entry.circle) {
@@ -567,14 +535,16 @@ document.addEventListener("click", (e) => {
     const id = removeBtn.getAttribute("data-id");
     if (!id || !confirm("Weet je zeker dat je deze vos wilt verwijderen?"))
       return;
-    // lokale cleanup
+
     const entry = vosLayers.get(id);
     if (entry) {
       map.removeLayer(entry.marker);
       if (entry.circle) map.removeLayer(entry.circle);
       vosLayers.delete(id);
     }
-    // server
+
+    closePopupIfVos(id);
+
     window.SocketAPI?.removeVos?.(id);
     return;
   }
@@ -595,7 +565,6 @@ document.addEventListener("click", (e) => {
     const entry = vosLayers.get(id);
     if (!entry) return;
 
-    // alleen nieuwste mag togglen
     const newestId = newestVosIdForArea(entry.data.area);
     if (entry.data.id !== newestId) return;
 
@@ -669,23 +638,10 @@ document.addEventListener("click", (e) => {
       setOrCreateDraggable(lat, lng);
   });
 
-  // ui toggle for circles
-  s.on("ui:circles:snapshot", ({ circlesVisible }) => {
-    showVosCircles = !!circlesVisible;
-    initCirclesToggle();
-    if (latestVosGraph) applyVosGraph(latestVosGraph);
-  });
-  s.on("ui:circles:set", ({ circlesVisible }) => {
-    showVosCircles = !!circlesVisible;
-    initCirclesToggle();
-    if (latestVosGraph) applyVosGraph(latestVosGraph);
-  });
-
-  // vos: raw snapshot – hard sync (prune lokale items die niet in snapshot zitten)
+  // vos
   s.on("vos:snapshot", (obj) => {
     const serverIds = new Set(Object.keys(obj || {}));
 
-    // remove local orphans
     Array.from(vosLayers.keys()).forEach((id) => {
       if (!serverIds.has(id)) {
         const e = vosLayers.get(id);
@@ -697,11 +653,9 @@ document.addEventListener("click", (e) => {
       }
     });
 
-    // upsert all from server
     Object.values(obj || {}).forEach((v) => upsertVosOnMap(v));
   });
 
-  // vos updates
   s.on("vos:upsert", (v) => {
     if (!v || typeof v.lat !== "number" || typeof v.lng !== "number") return;
     upsertVosOnMap(v);
@@ -709,13 +663,14 @@ document.addEventListener("click", (e) => {
 
   s.on("vos:remove", ({ id }) => {
     const e = vosLayers.get(id);
-    if (!e) return;
-    map.removeLayer(e.marker);
-    if (e.circle) map.removeLayer(e.circle);
-    vosLayers.delete(id);
+    if (e) {
+      map.removeLayer(e.marker);
+      if (e.circle) map.removeLayer(e.circle);
+      vosLayers.delete(id);
+    }
+    closePopupIfVos(id);
   });
 
-  // server-graph is de bron voor lijnen & newest-cirkel
   s.on("vos:graph", (graph) => {
     applyVosGraph(graph);
   });

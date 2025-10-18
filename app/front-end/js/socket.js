@@ -59,10 +59,6 @@
       if (!guard()) return;
       socket.emit("visited:set", { id, visited });
     },
-    setGlobalCirclesVisible(val) {
-      if (!guard()) return;
-      socket.emit("ui:circles:set", { circlesVisible: !!val });
-    },
     createVos(vos) {
       if (!guard()) return;
       socket.emit("vos:create", vos);
