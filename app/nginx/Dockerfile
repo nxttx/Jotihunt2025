@@ -3,10 +3,6 @@ FROM nginx:1.25.0
 # Copy nginx configuration file
 COPY ./nginx.conf /etc/nginx/nginx.conf
 
-RUN apt-get update && apt-get install -y apache2-utils
-#UN htpasswd -cb /etc/nginx/nginx.htpasswd username password
-RUN htpasswd -cb /etc/nginx/nginx.htpasswd rb pb32
-
 #mkdir /etc/nginx/certs
 RUN mkdir /etc/nginx/certs
 
