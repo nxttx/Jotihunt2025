@@ -4,22 +4,24 @@ const http = require("http");
 const fs = require("fs");
 const { Server } = require("socket.io");
 
-// ⚠️ Belangrijk: import Config uit het subpad
 const { JsonDB } = require("node-json-db");
 const { Config } = require("node-json-db/dist/lib/JsonDBConfig");
 
 const PORT = process.env.PORT || 8080;
-var draggablemarkerLocation = { lat: 51.988488, lng: 5.896824 };
 
 const app = express();
 app.use(express.json());
 
 // ============== Database ==============
-
 fs.mkdirSync("data", { recursive: true });
-
 const db = new JsonDB(new Config("data/markers", true, true, "/"));
 
+function safeKey(id) {
+  return String(id).replace(/\//g, "_");
+}
+
+// --- Stores (persisted) ---
+let visitedStore = {};
 try {
   visitedStore = db.getData("/visited");
 } catch {
@@ -27,9 +29,57 @@ try {
   db.push("/visited", visitedStore, true);
 }
 
-// ============== API Endpoints ==============
+let vosStore = {};
+try {
+  vosStore = db.getData("/vos");
+} catch {
+  vosStore = {};
+  db.push("/vos", vosStore, true);
+}
 
-// Healthcheck
+let draggablemarkerLocation = { lat: 51.988488, lng: 5.896824 };
+try {
+  const d = db.getData("/draggable");
+  if (typeof d?.lat === "number" && typeof d?.lng === "number") {
+    draggablemarkerLocation = d;
+  } else {
+    db.push("/draggable", draggablemarkerLocation, true);
+  }
+} catch {
+  db.push("/draggable", draggablemarkerLocation, true);
+}
+
+// ============== Helpers ==============
+
+// Graph van VOS per area
+function computeVosGraph(store) {
+  const byArea = new Map();
+  Object.values(store || {}).forEach((v) => {
+    if (!v?.area) return;
+    if (!byArea.has(v.area)) byArea.set(v.area, []);
+    byArea.get(v.area).push(v);
+  });
+
+  const areas = {};
+  for (const [area, arr] of byArea.entries()) {
+    arr.sort(
+      (A, B) => (Date.parse(A.startedAt) || 0) - (Date.parse(B.startedAt) || 0)
+    );
+    const order = arr.map((v) => v.id);
+    const newestId = order.length ? order[order.length - 1] : null;
+    const coords = arr.map((v) => [v.lat, v.lng]);
+    areas[area] = { order, newestId, coords };
+  }
+
+  return { version: Date.now(), areas };
+}
+
+function persistVosStoreHard() {
+  // hard overwrite /vos zodat geen zombie keys achterblijven
+  db.push("/vos", vosStore, true);
+}
+
+// ============== API Endpoints ==============
 app.get("/healthcheck", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
@@ -38,30 +88,32 @@ app.get("/draggablemarker/location", (req, res) => {
   res.status(200).json(draggablemarkerLocation);
 });
 
-app.get("/visited", (req, res) => {
-  res.json(visitedStore);
-});
+app.get("/visited", (req, res) => res.json(visitedStore));
+app.get("/vos", (req, res) => res.json(vosStore));
+app.get("/vos/graph", (req, res) => res.json(computeVosGraph(vosStore)));
 
-app.post("/visited", (req, res) => {
-  const { id, visited } = req.body || {};
-  if (!id || typeof visited !== "boolean")
-    return res.status(400).json({ error: "id & visited required" });
-
-  visitedStore[id] = { visited, ts: Date.now() };
+// Handige REST delete (debug)
+app.delete("/vos/:id", (req, res) => {
+  const id = req.params.id;
+  if (!id || !vosStore[id]) return res.status(404).json({ error: "not found" });
+  delete vosStore[id];
   try {
-    const safeId = String(id).replace(/\//g, "_");
-    db.push(`/visited/${safeId}`, visitedStore[id], true);
-  } catch (e) {}
-
-  io.emit("visited:update", { id, visited: visitedStore[id].visited });
-  res.json({ ok: true });
+    db.delete(`/vos/${safeKey(id)}`);
+  } catch (e) {
+    console.error("DB delete vos (path) error:", e);
+  }
+  try {
+    persistVosStoreHard();
+  } catch (e) {
+    console.error("DB overwrite /vos error:", e);
+  }
+  io.emit("vos:remove", { id });
+  io.emit("vos:graph", computeVosGraph(vosStore));
+  return res.json({ ok: true });
 });
 
 // ============== HTTP + Socket.IO Server ==============
-
 const server = http.createServer(app);
-
-// Socket.IO server
 const io = new Server(server, {
   path: "/socket.io",
   transports: ["websocket", "polling"],
@@ -70,12 +122,16 @@ const io = new Server(server, {
 const peers = new Map();
 
 // ============== Socket.IO Handlers ==============
-
 io.on("connection", (socket) => {
   let clientId = null;
 
+  // Init snapshots
   socket.emit("draggable:snapshot", draggablemarkerLocation);
+  socket.emit("visited:snapshot", visitedStore);
+  socket.emit("vos:snapshot", vosStore);
+  socket.emit("vos:graph", computeVosGraph(vosStore));
 
+  // Peer hello
   socket.on("hello", ({ clientId: cid, name }) => {
     clientId = cid;
     if (!clientId) return;
@@ -90,31 +146,105 @@ io.on("connection", (socket) => {
     });
 
     socket.emit("peers:snapshot", Object.fromEntries(peers.entries()));
-
-    socket.broadcast.emit("peer:join", {
-      clientId,
-      name: name || "Anoniem",
-    });
+    socket.broadcast.emit("peer:join", { clientId, name: name || "Anoniem" });
   });
 
-  // Database updates
-  socket.emit("visited:snapshot", visitedStore);
-
+  // Visited
   socket.on("visited:set", ({ id, visited }) => {
     if (!id || typeof visited !== "boolean") return;
 
     visitedStore[id] = { visited, ts: Date.now() };
     try {
-      const safeId = String(id).replace(/\//g, "_");
-      db.push(`/visited/${safeId}`, visitedStore[id], true);
+      db.push(`/visited/${safeKey(id)}`, visitedStore[id], true);
     } catch (e) {
-      console.error("DB push error:", e);
+      console.error("DB push visited error:", e);
     }
 
-    socket.broadcast.emit("visited:update", {
+    io.emit("visited:update", { id, visited: visitedStore[id].visited });
+  });
+
+  // VOS create / update / remove
+  socket.on("vos:create", (payload) => {
+    const { id, lat, lng, area, startedAt, label, circleEnabled } =
+      payload || {};
+    if (
+      typeof lat !== "number" ||
+      typeof lng !== "number" ||
+      !area ||
+      !startedAt ||
+      !id
+    )
+      return;
+
+    const vos = {
       id,
-      visited: visitedStore[id].visited,
-    });
+      lat,
+      lng,
+      area,
+      startedAt,
+      label: label || "",
+      circleEnabled: circleEnabled !== false, // default aan
+    };
+
+    vosStore[id] = vos;
+
+    try {
+      db.push(`/vos/${safeKey(id)}`, vos, true);
+    } catch (e) {
+      console.error("DB push vos error:", e);
+    }
+    try {
+      persistVosStoreHard();
+    } catch (e) {
+      console.error("DB overwrite /vos error:", e);
+    }
+
+    io.emit("vos:upsert", vos);
+    io.emit("vos:graph", computeVosGraph(vosStore));
+  });
+
+  socket.on("vos:update", (payload) => {
+    const { id } = payload || {};
+    if (!id || !vosStore[id]) return;
+
+    const merged = { ...vosStore[id], ...payload };
+    if ("circleEnabled" in payload)
+      merged.circleEnabled = !!payload.circleEnabled;
+    vosStore[id] = merged;
+
+    try {
+      db.push(`/vos/${safeKey(id)}`, merged, true);
+    } catch (e) {
+      console.error("DB push vos update error:", e);
+    }
+    try {
+      persistVosStoreHard();
+    } catch (e) {
+      console.error("DB overwrite /vos error:", e);
+    }
+
+    io.emit("vos:upsert", merged);
+    io.emit("vos:graph", computeVosGraph(vosStore));
+  });
+
+  socket.on("vos:remove", ({ id }) => {
+    if (!id || !vosStore[id]) return;
+
+    delete vosStore[id];
+
+    try {
+      db.delete(`/vos/${safeKey(id)}`);
+    } catch (e) {
+      console.error("DB delete vos (path) error:", e);
+    }
+    try {
+      persistVosStoreHard();
+    } catch (e) {
+      console.error("DB overwrite /vos error:", e);
+    }
+
+    io.emit("vos:remove", { id });
+    io.emit("vos:graph", computeVosGraph(vosStore));
   });
 
   // Locatie updates
@@ -138,11 +268,18 @@ io.on("connection", (socket) => {
     }
   );
 
-  // Marker updates
+  // Draggable (persisted)
   socket.on("draggable:update", ({ lat, lng }) => {
     if (typeof lat !== "number" || typeof lng !== "number") return;
+
     draggablemarkerLocation = { lat, lng };
-    socket.broadcast.emit("draggable:update", draggablemarkerLocation);
+    try {
+      db.push("/draggable", draggablemarkerLocation, true);
+    } catch (e) {
+      console.error("DB push draggable error:", e);
+    }
+
+    io.emit("draggable:update", draggablemarkerLocation);
   });
 
   socket.on("disconnect", () => {
@@ -154,7 +291,6 @@ io.on("connection", (socket) => {
 });
 
 // ============== Start Server ==============
-
 server.listen(PORT, () => {
   console.log(`Web API + Socket.IO listening on :${PORT}`);
 });
